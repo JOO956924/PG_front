@@ -1,0 +1,40 @@
+/* Calendar.css */
+.calendar-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.calendar-day,
+.calendar-day-name {
+  text-align: center;
+  padding: 10px;
+  border-radius: 50%;
+  background-color: #eee; /* 기본 배경색 */
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background-color: #ddd; /* 마우스를 올렸을 때 배경색 */
+}
+
+.calendar-day.selected {
+  background-color: #007bff; /* 선택된 날짜 배경색 */
+  color: white; /* 선택된 날짜 글자색 */
+  font-weight: bold; /* 선택된 날짜 폰트 굵게 */
+  border: 2px solid #0056b3; /* 선택된 날짜 테두리 */
+}
