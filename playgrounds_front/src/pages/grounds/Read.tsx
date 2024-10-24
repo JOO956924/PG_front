@@ -1,15 +1,15 @@
-import {FormEvent, useEffect, useRef, useState} from 'react'
+import {SyntheticEvent, useEffect, useState} from 'react'
 import useToken from '../../hooks/useToken'
-import {useNavigate, useSearchParams} from 'react-router-dom'
+import {useSearchParams} from 'react-router-dom'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
-import Calendar from '../../components/Calendar'
+import defaultImg from '../../assets/no-img.gif'
 import './Read.css' // 스타일을 위한 CSS 파일
 
 // Grounds 데이터 구조 정의
 interface GroundsDTO {
-  gphotosDTOList: {path: string}[]
+  gphotosDTOList: GphotosDTO[]
   gno: number
   day: number
   reviewsCnt: number
@@ -28,12 +28,11 @@ interface GroundsDTO {
   modDate: string
 }
 
-// PageRequestDTO 구조 정의
-interface PageRequestDTO {
-  page: string
-  size: string
-  type: string
-  keyword: string
+// GphotosDTO 구조 정의
+interface GphotosDTO {
+  uuid: string | Blob
+  gphotosName: string | Blob
+  path: string | Blob
 }
 
 export default function Read() {
@@ -41,6 +40,10 @@ export default function Read() {
   const gno = searchParams.get('gno') // 쿼리 파라미터에서 gno 값을 추출
   const token = useToken()
   const [groundsDTO, setGroundsDTO] = useState<GroundsDTO | null>(null)
+  const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = defaultImg
+  }
+
   useEffect(() => {
     if (token && gno) {
       // token과 gno가 존재할 때만 API 호출
@@ -87,9 +90,14 @@ export default function Read() {
           {groundsDTO.gphotosDTOList.map((photo, idx) => (
             <div key={idx} className="carousel-slide">
               <img
-                src={photo.path}
+                src={
+                  photo.path
+                    ? `http://localhost:8080/api/display?fileName=${photo.path}`
+                    : defaultImg
+                }
                 alt={`슬라이드 이미지 ${idx + 1}`}
                 className="carousel-image"
+                onError={addDefaultImg}
               />
             </div>
           ))}

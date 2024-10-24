@@ -65,32 +65,39 @@ export default function List() {
     {value: '', label: '선택하세요'},
     {value: 't', label: '제목'},
     {value: 'c', label: '내용'},
-    {value: 'w', label: '작성자'},
-    {value: 'tc', label: '제목 + 내용'},
-    {value: 'tcw', label: '제목 + 내용 + 작성자'}
+    {value: 'w', label: '작성자'}
   ]
 
   useEffect(() => {
-    let compare = query.get('page')
-    const page = compare === 'null' || compare == null ? '1' : compare
-    compare = query.get('type')
-    const type = compare === 'null' || compare == null ? '' : compare
-    compare = query.get('keyword')
-    const keyword = compare === 'null' || compare == null ? '' : compare
+    const page = query.get('page') || '1'
+    const type = query.get('type') || ''
+    const keyword = query.get('keyword') || ''
 
-    let url = 'http://localhost:8080/api/grounds/list'
-    const queryParams = []
+    setPageRequestDTO(prev => ({
+      ...prev,
+      page,
+      type,
+      keyword
+    }))
 
     if (type) {
       setTypes(type)
       setInverted(false)
-      queryParams.push(`type=${type}`)
+    } else {
+      setInverted(true)
     }
-    if (page) queryParams.push(`page=${page}`)
+
     if (keyword) {
-      setInverted(false)
-      queryParams.push(`keyword=${keyword}`)
+      setKeywords(keyword)
     }
+
+    let url = 'http://localhost:8080/api/grounds/list'
+    const queryParams = []
+
+    if (type) queryParams.push(`type=${type}`)
+    if (page) queryParams.push(`page=${page}`)
+    if (keyword) queryParams.push(`keyword=${keyword}`)
+
     if (queryParams.length > 0) url += '?' + queryParams.join('&')
 
     if (token) {
@@ -112,7 +119,7 @@ export default function List() {
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [query, types, token])
+  }, [query, token])
 
   const url = `/grounds`
 
@@ -129,6 +136,9 @@ export default function List() {
 
     navigate(url + `/list?type=${typew}&keyword=${keywordw}&page=1`)
     setKeywords('')
+    if (refKeyword.current) {
+      refKeyword.current.value = '' // input 필드 값도 초기화
+    }
     setTypes('')
   }
 
