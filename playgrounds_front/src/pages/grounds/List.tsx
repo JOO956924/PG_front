@@ -10,7 +10,7 @@ import './List.css'
 // Grounds 데이터 구조 정의
 interface Grounds {
   gno: number
-  title: string
+  gtitle: string
   gphotosDTOList: {path: string}[]
   reviewsCnt: number
   likes: number
@@ -223,22 +223,33 @@ export default function List() {
       </form>
 
       <div className="card-list">
-        {pageResultDTO?.dtoList.map(ground => (
-          <div key={ground.gno} className="card-row">
-            <div className="ground-time">{formatDate(ground.day.toString())}</div>
-            <div className="card-info" onClick={() => goRead(ground.gno)}>
-              <div className="card-content">
-                <span className="game-schedule">경기 시간: {ground.groundsTime}</span>
-                <span className="game-info">경기명: {ground.title}</span>
-                <span className="sports-info">종목: {ground.sports}</span>
-                <span className="location-info">위치: {ground.location}</span>
-              </div>
-              <div className="card-button">
-                <span className="people-info">모집 인원: {ground.maxpeople}</span>
+        {pageResultDTO?.dtoList
+          .sort((a, b) => a.groundstime.localeCompare(b.groundstime))
+          .map(ground => (
+            <div key={ground.gno} className="card-row">
+              <div className="ground-time">{formatDate(ground.day.toString())}</div>
+              <div
+                className="card-info"
+                onClick={() =>
+                  goRead(
+                    ground.gno,
+                    pageResultDTO.page,
+                    pageRequestDTO.type,
+                    pageRequestDTO.keyword
+                  )
+                }>
+                <div className="card-content">
+                  <span className="game-schedule">경기 시간: {ground.groundstime}</span>
+                  <span className="game-info">경기명: {ground.gtitle}</span>
+                  <span className="sports-info">종목: {ground.sports}</span>
+                  <span className="location-info">위치: {ground.location}</span>
+                </div>
+                <div className="card-button">
+                  <span className="people-info">모집 인원: {ground.maxpeople}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <ul className="pagination">

@@ -159,6 +159,24 @@ export default function Register() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    const fields = [
+      {ref: refGroundsTime, name: '경기 시간'},
+      {ref: refGTitle, name: '구장 이름'},
+      {ref: refInfo, name: '구장 정보'},
+      {ref: refLocation, name: '장소'},
+      {ref: refMaxPeople, name: '모집 인원'},
+      {ref: refPrice, name: '가격'},
+      {ref: refSports, name: '종목'}
+    ]
+
+    for (const field of fields) {
+      if (!field.ref.current?.value) {
+        alert(`${field.name}을(를) 입력하세요.`)
+        field.ref.current?.focus()
+        return
+      }
+    }
+
     let compare = query.get('page') // 기본적으로 페이지 1을 사용
     const page = compare === 'null' || compare == null ? '1' : compare
     compare = query.get('type')
@@ -242,7 +260,7 @@ export default function Register() {
             경기 시간
           </label>
           <input
-            type="text"
+            type="time"
             name="groundstime"
             ref={refGroundsTime}
             style={{fontSize: '22px'}}
@@ -398,7 +416,7 @@ export default function Register() {
             style={{
               fontSize: '30px',
               background: 'white',
-              color: 'bd5d38',
+              color: 'black',
               border: '1px solid #bd5d38'
             }}>
             Submit
