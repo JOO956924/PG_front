@@ -9,18 +9,17 @@ const Calendar = () => {
   const [searchParams] = useSearchParams() // URL의 쿼리 파라미터에서 검색된 day 가져오기
 
   useEffect(() => {
-    // 처음 로드 시 검색된 'day' 값 가져오기
-    const dayFromQuery = searchParams.get('day')
+    // 처음 로드 시 검색된 'keyword'의 마지막 두 자리 값을 추출하여 강조 표시
+    const dayFromQuery = searchParams.get('keyword')
     if (dayFromQuery) {
       const extractedDay = parseInt(dayFromQuery.slice(-2)) // 마지막 두 자리(day) 추출
       setSelectedDay(extractedDay)
     } else {
       const todayDay = today.getDate()
       navigate(
-        `/grounds/list?day=${today.getFullYear()}${String(today.getMonth() + 1).padStart(
-          2,
-          '0'
-        )}${String(todayDay).padStart(2, '0')}&page=1`
+        `/grounds/list?type=d&keyword=${today.getFullYear()}${String(
+          today.getMonth() + 1
+        ).padStart(2, '0')}${String(todayDay).padStart(2, '0')}&page=1`
       ) // 오늘의 day로 검색
       setSelectedDay(todayDay) // 오늘의 day를 선택
     }
@@ -31,7 +30,7 @@ const Calendar = () => {
   const firstDay = new Date(year, month, 1).getDay() // 해당 월 첫째 날의 요일
   const daysInMonth = new Date(year, month + 1, 0).getDate() // 해당 월의 일 수
 
-  // 월 변경 함수: 다음달, 지난달로 이동하고 검색 쿼리 리셋
+  // 월 변경 함수: 다음달이면 첫번째 날로, 지난달이면 마지막 날로 이동하고 검색 쿼리 리셋
   const changeMonth = (delta: number) => {
     const newDate = new Date(year, month + delta, 1)
     setCurrentDate(newDate)
@@ -40,19 +39,19 @@ const Calendar = () => {
       // 다음달로 가면 첫번째 날 선택
       setSelectedDay(1)
       navigate(
-        `/grounds/list?day=${newDate.getFullYear()}${String(
+        `/grounds/list?type=d&keyword=${newDate.getFullYear()}${String(
           newDate.getMonth() + 1
         ).padStart(2, '0')}01&page=1`
-      )
+      ) // 쿼리 리셋 후 다음달 첫번째 날로 검색
     } else {
       // 지난달로 가면 마지막 날 선택
       const lastDay = new Date(year, month + delta + 1, 0).getDate()
       setSelectedDay(lastDay)
       navigate(
-        `/grounds/list?day=${newDate.getFullYear()}${String(
+        `/grounds/list?type=d&keyword=${newDate.getFullYear()}${String(
           newDate.getMonth() + 1
         ).padStart(2, '0')}${String(lastDay).padStart(2, '0')}&page=1`
-      )
+      ) // 쿼리 리셋 후 지난달 마지막 날로 검색
     }
   }
 
@@ -64,10 +63,7 @@ const Calendar = () => {
 
     const formattedDate = `${year}${month}${dayString}` // YYYYMMDD 형식으로 날짜 생성
 
-    // 기존 쿼리 파라미터 유지한 상태로 새로운 날짜 검색
-    const currentKeyword = searchParams.get('keyword') || ''
-
-    navigate(`/grounds/list?day=${formattedDate}&keyword=${currentKeyword}&page=1`) // YYYYMMDD 형식으로 검색
+    navigate(`/grounds/list?type=d&keyword=${formattedDate}&page=1`) // YYYYMMDD 형식으로 검색
     setSelectedDay(day) // 선택된 날짜로 설정
   }
 
@@ -87,11 +83,11 @@ const Calendar = () => {
             textAlign: 'center',
             padding: '10px',
             borderRadius: '50%',
-            backgroundColor: isSelected ? '#ddd' : '#fff', // 선택된 날짜일 경우 색상 강조
-            color: isSelected ? '#333' : '#333', // 글자 색상
-            fontWeight: isSelected ? 'bold' : 'normal', // 선택된 날짜일 경우 폰트 굵게
-            fontSize: '16px',
-            border: isSelected ? '2px solid #333' : '1px solid #ccc',
+            backgroundColor: '#eee', // 선택 전과 동일한 배경색 유지
+            color: isSelected ? '#333' : '#333', // 글자 색상 고정
+            fontWeight: isSelected ? 'bold' : 'normal', // 선택된 날짜일 경우 폰트를 굵게 설정
+            fontSize: '16px', // 글자 크기는 고정 (변경 없음)
+            border: 'none', // 선택 전후 모두 테두리 제거
             cursor: 'pointer'
           }}>
           {i}

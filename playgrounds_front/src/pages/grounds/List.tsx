@@ -1,26 +1,25 @@
-import {FormEvent, useEffect, useRef, useState} from 'react'
-import useToken from '../../hooks/useToken'
+import {useEffect, useRef, useState, FormEvent} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
-import './List.css'
 import Calendar from '../../components/Calendar'
+import useToken from '../../hooks/useToken'
+import './List.css'
 
 // Grounds 데이터 구조 정의
 interface Grounds {
   gno: number
   title: string
-  day: number
   gphotosDTOList: {path: string}[]
   reviewsCnt: number
   likes: number
   regDate: string
+  day: number
   groundsTime: string
   location: string
   sports: string
   maxpeople: number
-  nowpeople: number
 }
 
 // PageRequestDTO 구조 정의
@@ -29,6 +28,7 @@ interface PageRequestDTO {
   size: string
   type: string
   keyword: string
+  day: string // day 필드 추가
 }
 
 // PageResultDTO 구조 정의
@@ -42,63 +42,45 @@ interface PageResultDTO {
   next: boolean
 }
 
+// 날짜 형식을 변환하는 함수
+const formatDate = (dateString: string) => {
+  const year = dateString.substring(0, 4)
+  const month = dateString.substring(4, 6)
+  const day = dateString.substring(6, 8)
+
+  const date = new Date(`${year}-${month}-${day}`)
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토']
+  const dayOfWeek = weekDays[date.getDay()]
+
+  return `${month}월 ${day}일 (${dayOfWeek})`
+}
+
 export default function List() {
   const token = useToken()
   const navigate = useNavigate()
-  const [query] = useSearchParams()
+  const [query, setQuery] = useSearchParams()
   const refType = useRef<HTMLSelectElement | null>(null)
   const refKeyword = useRef<HTMLInputElement | null>(null)
-  const refBtnSrch = useRef<HTMLButtonElement | null>(null)
 
   const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
     page: '',
     size: '',
     type: '',
-    keyword: ''
+    keyword: '',
+    day: '' // day 값을 관리
   })
   const [pageResultDTO, setPageResultDTO] = useState<PageResultDTO | null>(null)
-  const [inverted, setInverted] = useState(true)
-  const [keywords, setKeywords] = useState('')
-  const [types, setTypes] = useState('')
-
-  const options = [
-    {value: '', label: '선택하세요'},
-    {value: 't', label: '제목'},
-    {value: 'c', label: '내용'},
-    {value: 'w', label: '작성자'}
-  ]
+  const [keywords, setKeywords] = useState(query.get('keyword') || '')
+  const [types, setTypes] = useState(query.get('type') || '')
+  const [selectedDay, setSelectedDay] = useState(query.get('day') || '') // URL에서 day 값을 가져와서 유지
 
   useEffect(() => {
     const page = query.get('page') || '1'
     const type = query.get('type') || ''
     const keyword = query.get('keyword') || ''
+    const day = query.get('day') || selectedDay // 항상 day 값을 유지
 
-    setPageRequestDTO(prev => ({
-      ...prev,
-      page,
-      type,
-      keyword
-    }))
-
-    if (type) {
-      setTypes(type)
-      setInverted(false)
-    } else {
-      setInverted(true)
-    }
-
-    if (keyword) {
-      setKeywords(keyword)
-    }
-
-    let url = 'http://localhost:8080/api/grounds/list'
-    const queryParams = []
-
-    if (type) queryParams.push(`type=${type}`)
-    if (page) queryParams.push(`page=${page}`)
-    if (keyword) queryParams.push(`keyword=${keyword}`)
-
-    if (queryParams.length > 0) url += '?' + queryParams.join('&')
+    let url = `http://localhost:8080/api/grounds/list?page=${page}&type=${type}&keyword=${keyword}&day=${day}`
 
     if (token) {
       fetch(url, {
@@ -119,36 +101,44 @@ export default function List() {
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [query, token])
+  }, [query, token, selectedDay])
 
-  const url = `/grounds`
-
-  const getSearch = (e: FormEvent<HTMLButtonElement>) => {
+  const handleSearch = (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault()
-
-    const keywordw = refKeyword.current?.value
-    const typew = refType.current?.value
-
-    if (!keywordw) {
-      refKeyword.current?.focus()
-      return
-    }
-
-    navigate(url + `/list?type=${typew}&keyword=${keywordw}&page=1`)
-    setKeywords('')
-    if (refKeyword.current) {
-      refKeyword.current.value = '' // input 필드 값도 초기화
-    }
-    setTypes('')
+    // 검색할 때 day 값을 유지하면서 새로운 검색 조건을 적용
+    setQuery({
+      page: '1',
+      type: types,
+      keyword: keywords,
+      day: selectedDay || query.get('day') // day 값 유지
+    })
   }
 
-  const goRead = (gno: number, page: number, type: string, keyword: string) => {
-    location.href = url + `/read?gno=${gno}&page=${page}&type=${type}&keyword=${keyword}`
+  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTypes(e.target.value)
+    // 검색 타입을 변경할 때도 day 값을 유지한 채로 적용
+    setQuery({
+      page: '1',
+      type: e.target.value,
+      keyword: keywords,
+      day: selectedDay || query.get('day') // day 값 유지
+    })
   }
+
+  const goRead = (gno: number) => {
+    navigate(
+      `/grounds/read?gno=${gno}&page=${pageRequestDTO.page}&type=${
+        pageRequestDTO.type
+      }&keyword=${pageRequestDTO.keyword}&day=${selectedDay || query.get('day')}`
+    )
+  }
+
   const goRegister = () => {
-    location.href =
-      url +
-      `/register?page=${pageRequestDTO.page}&type=${pageRequestDTO.type}&keyword=${pageRequestDTO.keyword}`
+    navigate(
+      `/grounds/register?page=${pageRequestDTO.page}&type=${
+        pageRequestDTO.type
+      }&keyword=${pageRequestDTO.keyword}&day=${selectedDay || query.get('day')}`
+    )
   }
 
   const sliderSettings = {
@@ -180,126 +170,85 @@ export default function List() {
         </div>
       </Slider>
 
-      <Calendar />
+      <Calendar selectedDay={selectedDay} onSelectDay={setSelectedDay} />
 
       <form method="GET" className="search-form">
         <div className="input-group">
-          <div className="input-group-prepend" style={{marginRight: '10px'}}>
-            <select
-              className="form-control"
-              style={{fontSize: '22px'}}
-              ref={refType}
-              name="type"
-              value={types}
-              onChange={e => {
-                if (e) {
-                  setTypes(refType.current?.value ?? '')
-                  if (e.target.selectedIndex === 0) {
-                    if (!keywords) setKeywords('')
-                    setInverted(true)
-                    if (refKeyword.current?.value) {
-                      setKeywords('')
-                    }
-                    navigate(`/`)
-                  } else if (e.target.value !== types) {
-                    if (!keywords) {
-                      setKeywords('')
-                    }
-                    setInverted(false)
-                    if (refKeyword.current?.value) {
-                      setKeywords('')
-                    }
-                    navigate(`/`)
-                    refKeyword.current?.focus()
-                  } else {
-                    setInverted(false)
-                  }
-                }
-                setTypes(e.target.value)
-              }}>
-              {options.map((item, idx) => (
-                <option key={idx} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            className="form-control"
+            style={{fontSize: '22px'}}
+            ref={refType}
+            name="type"
+            value={types}
+            onChange={handleTypeChange}>
+            <option value="">선택하세요</option>
+            <option value="t">제목</option>
+            <option value="c">내용</option>
+            <option value="w">작성자</option>
+            <option value="tc">제목 + 내용</option>
+            <option value="tcw">제목 + 내용 + 작성자</option>
+          </select>
+
           <input
             type="text"
             className="form-control"
             name="keyword"
-            style={{borderRadius: '5px', fontSize: '22px'}}
+            style={{fontSize: '22px'}}
             ref={refKeyword}
-            disabled={inverted}
-            onChange={e => {
-              setKeywords(e.target.value)
-            }}
             value={keywords}
+            onChange={e => setKeywords(e.target.value)}
           />
-          <div className="input-group-append" style={{marginLeft: '10px'}}>
-            <button
-              type="button"
-              style={{fontSize: '30px'}}
-              className="btn btn-outline-primary btnSearch"
-              onClick={getSearch}
-              ref={refBtnSrch}
-              disabled={inverted}>
-              Search
-            </button>
-            <button
-              type="button"
-              style={{
-                fontSize: '30px',
-                marginLeft: '10px',
-                background: 'white',
-                color: '#bd5d38',
-                border: '1px solid #bd5d38'
-              }}
-              className="btn btn-outline-secondary"
-              onClick={goRegister}>
-              Register
-            </button>
-          </div>
+
+          <button
+            type="button"
+            className="btn btn-outline-primary"
+            style={{fontSize: '30px', marginLeft: '10px'}}
+            onClick={handleSearch}>
+            Search
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            style={{
+              fontSize: '30px',
+              marginLeft: '10px',
+              background: 'white',
+              color: '#bd5d38',
+              border: '1px solid #bd5d38'
+            }}
+            onClick={goRegister}>
+            Register
+          </button>
         </div>
       </form>
 
       <div className="card-list">
         {pageResultDTO?.dtoList.map(ground => (
           <div key={ground.gno} className="card-row">
-            <div className="ground-time">{ground.groundsTime}</div>
-            <div
-              className="card-info"
-              onClick={() =>
-                goRead(
-                  ground.gno,
-                  pageResultDTO.page,
-                  pageRequestDTO.type,
-                  pageRequestDTO.keyword
-                )
-              }>
+            <div className="ground-time">{formatDate(ground.day.toString())}</div>
+            <div className="card-info" onClick={() => goRead(ground.gno)}>
               <div className="card-content">
-                <span className="location-info">위치: {ground.location}</span>
-                <span className="sports-info">종목: {ground.sports}</span>
+                <span className="game-schedule">경기 시간: {ground.groundsTime}</span>
                 <span className="game-info">경기명: {ground.title}</span>
+                <span className="sports-info">종목: {ground.sports}</span>
+                <span className="location-info">위치: {ground.location}</span>
               </div>
               <div className="card-button">
-                <span className="people-info">
-                  {ground.nowpeople === ground.maxpeople
-                    ? '모집 완료'
-                    : `모집 인원: ${ground.maxpeople}`}
-                </span>
+                <span className="people-info">모집 인원: {ground.maxpeople}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <ul className="pagination h-100 justify-content-center align-items-center">
+      <ul className="pagination">
         {pageResultDTO?.prev && (
           <li className="page-item">
             <a
               className="page-link"
-              href={`/grounds/list?page=${Math.max(1, pageResultDTO.start - 1)}`}>
+              href={`/grounds/list?page=${pageResultDTO.start - 1}&day=${
+                selectedDay || query.get('day')
+              }`}>
               Prev
             </a>
           </li>
@@ -307,19 +256,23 @@ export default function List() {
         {pageResultDTO?.pageList.map(page => (
           <li
             key={page}
-            className={`page-item ${pageResultDTO?.page === page ? 'active' : ''}`}>
+            className={`page-item ${pageResultDTO.page === page ? 'active' : ''}`}>
             <a
               className="page-link"
               href={`/grounds/list?page=${page}&type=${query.get(
                 'type'
-              )}&keyword=${query.get('keyword')}`}>
+              )}&keyword=${query.get('keyword')}&day=${selectedDay || query.get('day')}`}>
               {page}
             </a>
           </li>
         ))}
         {pageResultDTO?.next && (
           <li className="page-item">
-            <a className="page-link" href={`/grounds/list?page=${pageResultDTO.end + 1}`}>
+            <a
+              className="page-link"
+              href={`/grounds/list?page=${pageResultDTO.end + 1}&day=${
+                selectedDay || query.get('day')
+              }`}>
               Next
             </a>
           </li>
