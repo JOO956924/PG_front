@@ -182,11 +182,9 @@ export default function List() {
             value={types}
             onChange={handleTypeChange}>
             <option value="">선택하세요</option>
-            <option value="t">제목</option>
-            <option value="c">내용</option>
-            <option value="w">작성자</option>
-            <option value="tc">제목 + 내용</option>
-            <option value="tcw">제목 + 내용 + 작성자</option>
+            <option value="t">구장이름</option>
+            <option value="c">종목</option>
+            <option value="w">지역</option>
           </select>
 
           <input
@@ -240,7 +238,7 @@ export default function List() {
                 }>
                 <div className="card-content">
                   <span className="game-schedule">경기 시간: {ground.groundstime}</span>
-                  <span className="game-info">경기명: {ground.gtitle}</span>
+                  <span className="game-info">구장명: {ground.gtitle}</span>
                   <span className="sports-info">종목: {ground.sports}</span>
                   <span className="location-info">위치: {ground.location}</span>
                 </div>
