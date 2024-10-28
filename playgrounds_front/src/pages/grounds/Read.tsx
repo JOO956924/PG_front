@@ -1,13 +1,12 @@
 import {SyntheticEvent, useEffect, useState} from 'react'
+import {useNavigate, useSearchParams, useLocation} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
-import {useSearchParams} from 'react-router-dom'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import defaultImg from '../../assets/no-img.gif'
-import './Read.css' // 스타일을 위한 CSS 파일
+import './Read.css'
 
-// Grounds 데이터 구조 정의
 interface GroundsDTO {
   gphotosDTOList: GphotosDTO[]
   gno: number
@@ -28,27 +27,60 @@ interface GroundsDTO {
   modDate: string
 }
 
-// GphotosDTO 구조 정의
 interface GphotosDTO {
   uuid: string | Blob
   gphotosName: string | Blob
   path: string | Blob
 }
 
+interface PageRequestDTO {
+  page: string
+  size: string
+  type: string
+  keyword: string
+  day: string // day 필드 추가
+}
+
+// PageResultDTO 구조 정의
+interface PageResultDTO {
+  dtoList: GroundsDTO[]
+  page: number
+  start: number
+  end: number
+  pageList: number[]
+  prev: boolean
+  next: boolean
+}
+
 export default function Read() {
-  const [searchParams] = useSearchParams() // 쿼리 파라미터를 사용하기 위해 useSearchParams 훅 사용
-  const gno = searchParams.get('gno') // 쿼리 파라미터에서 gno 값을 추출
+  const [searchParams] = useSearchParams()
+  const gno = searchParams.get('gno')
   const token = useToken()
+  const navigate = useNavigate()
+  const [query, setQuery] = useSearchParams()
+  const location = useLocation() // 현재 URL 정보를 가져오기 위한 useLocation 사용
   const [groundsDTO, setGroundsDTO] = useState<GroundsDTO | null>(null)
+
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
   }
 
+  const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
+    page: '',
+    size: '',
+    type: '',
+    keyword: '',
+    day: '' // day 값을 관리
+  })
+
+  const [pageResultDTO, setPageResultDTO] = useState<PageResultDTO | null>(null)
+  const [keywords, setKeywords] = useState(query.get('keyword') || '')
+  const [types, setTypes] = useState(query.get('type') || '')
+  const [selectedDay, setSelectedDay] = useState(query.get('day') || '') // URL에서 day 값을 가져와서 유지
+
   useEffect(() => {
     if (token && gno) {
-      // token과 gno가 존재할 때만 API 호출
       fetch(`http://localhost:8080/api/grounds/read/${gno}`, {
-        // gno를 경로 파라미터로 사용하여 API 호출
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
@@ -65,13 +97,20 @@ export default function Read() {
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [gno, token]) // gno와 token이 변경될 때마다 useEffect 실행
+  }, [gno, token])
+
+  const goModify = (gno: number) => {
+    navigate(
+      `/grounds/modify?gno=${gno}&page=${pageRequestDTO.page}&type=${
+        pageRequestDTO.type
+      }&keyword=${pageRequestDTO.keyword}&day=${selectedDay || query.get('day')}`
+    )
+  }
 
   if (!groundsDTO) {
     return <div>Loading...</div>
   }
 
-  // React Slick 설정
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -84,6 +123,11 @@ export default function Read() {
 
   return (
     <div className="container">
+      {/* 오른쪽 상단 수정 버튼 */}
+      <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
+        수정
+      </button>
+
       {/* 상단 캐러셀 */}
       <div className="carousel-container">
         <Slider {...sliderSettings}>
