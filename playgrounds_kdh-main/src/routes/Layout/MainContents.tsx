@@ -8,6 +8,8 @@ import BoardsList from '../../pages/boards/List'
 import Bregister from '../../pages/boards/Register'
 import Bread from '../../pages/boards/Read'
 import Bmodify from '../../pages/boards/Modify'
+import Profile from '../../pages/members/Profile'
+import Charge from '../../pages/members/Charge'
 
 export type MainContentsProps = {
   style?: CSSProperties
@@ -38,6 +40,10 @@ export const MainContents: FC<MainContentsProps> = ({style}) => {
         return <Bregister />
       case '/boards/read':
         return <Bread />
+      case '/members/profile':
+        return <Profile />
+      case '/members/charge':
+        return <Charge />
       default:
         return <h2>Page Not Found</h2>
     }

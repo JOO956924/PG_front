@@ -1,0 +1,270 @@
+body {
+  margin: 0; /* 기본 여백 제거 */
+  padding: 0; /* 기본 패딩 제거 */
+  font-family: Arial, sans-serif; /* 기본 폰트 설정 */
+}
+
+.list-container,
+.register-container,
+.search-form {
+  margin-bottom: 20px;
+  width: 100%; /* 전체 너비 사용 */
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.input-group .form-control {
+  flex: 1;
+  padding: 10px; /* 패딩 추가로 클릭 영역 확장 */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px; /* 테이블과 상단 요소 간의 여백 */
+}
+
+.table th,
+.table td {
+  padding: 12px; /* 패딩 조정 */
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.table th {
+  background-color: #f0f0f0; /* 헤더 배경색 변경 */
+  font-weight: bold; /* 텍스트 강조 */
+}
+
+.boardslist {
+  cursor: pointer;
+}
+
+.boardslist:hover {
+  background-color: #f7f7f7; /* hover 효과 개선 */
+}
+
+.thumbnail {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column; /* 세로 방향으로 정렬 */
+  gap: 15px; /* 각 항목 간의 간격 */
+  width: 100%; /* 전체 너비 사용 */
+}
+
+.form-group {
+  margin-bottom: 15px; /* 그룹 간 여백 */
+}
+
+.form-control {
+  padding: 10px; /* 입력 필드 패딩 */
+  border: 1px solid #ccc; /* 입력 필드 테두리 */
+  border-radius: 4px; /* 입력 필드 모서리 둥글게 */
+  transition: border-color 0.2s; /* 부드러운 경계 변화 */
+  width: 100%; /* 입력 필드 너비 100% */
+}
+
+.form-control:focus {
+  border-color: #007bff; /* 포커스 시 테두리 색상 변경 */
+  outline: none; /* 기본 아웃라인 제거 */
+}
+
+.btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s; /* 부드러운 배경색 변화 */
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.read-content {
+  background-color: #f8f9fa; /* 배경색 */
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.read-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.read-author,
+.read-body,
+.read-likes,
+.read-date {
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.read-image-container {
+  margin: 10px 0;
+}
+
+.read-thumbnail {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.read-body-container,
+.read-likes-container,
+.read-date-container {
+  margin: 15px 0; /* 요소 간의 여백 추가 */
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+}
+
+.content-textarea {
+  height: 300px; /* 원하는 높이로 설정 */
+  resize: none; /* 크기 조절 비활성화 */
+}
+
+/* Register Form Button Styles */
+.register-form .form-group:last-child {
+  display: flex;
+  justify-content: space-between; /* 버튼들을 양쪽 끝에 정렬 */
+}
+
+.button-container {
+  margin-top: 20px; /* 버튼과 다른 요소 간의 여백 추가 */
+  display: flex; /* 버튼들을 플렉스 컨테이너로 설정 */
+  justify-content: space-between; /* 양쪽 끝으로 정렬 */
+}
+
+.centered-title {
+  text-align: center; /* 텍스트를 중앙 정렬 */
+  width: 100%; /* 너비를 100%로 설정하여 전체 영역 사용 */
+  margin-bottom: 20px; /* 제목과 아래 요소 간의 여백 추가 */
+}
+
+.container {
+  max-width: 1200px; /* 원하는 최대 너비 */
+  margin: 0 auto; /* 중앙 정렬 */
+  padding: 20px; /* 여백 */
+}
+.modify-container {
+  max-width: 1000px; /* 최대 너비를 800px로 설정 */
+  width: 760px;
+  margin: 20px auto; /* 상하 여백 20px, 좌우 중앙 정렬 */
+  padding: 20px; /* 내부 여백 추가 */
+  border: 1px solid #ddd; /* 테두리 추가 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과를 좀 더 강조 */
+  background-color: #fff; /* 배경색 추가 */
+}
+.read-container {
+  max-width: 800px; /* 최대 너비 설정 */
+  margin: 20px auto; /* 상하 여백 20px, 좌우 중앙 정렬 */
+  padding: 0 15%; /* 내부 여백 */
+  border: 1px solid #ddd; /* 테두리 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+  background-color: #fff; /* 배경색 */
+}
+
+.read-title {
+  font-size: 1.5rem; /* 제목 크기 */
+  margin-bottom: 10px; /* 아래쪽 여백 */
+}
+
+.read-author,
+.read-date {
+  color: #777; /* 글쓴이와 등록 날짜 색상 */
+  font-size: 0.9rem; /* 크기 */
+}
+
+.read-image-container {
+  margin: 15px 0; /* 이미지 위아래 여백 */
+}
+
+.read-thumbnail {
+  width: 100%; /* 썸네일 이미지 너비 */
+  height: auto; /* 높이 자동 조정 */
+  border-radius: 8px; /* 모서리 둥글게 */
+}
+
+.read-body {
+  font-size: 1rem; /* 본문 크기 */
+  line-height: 1.5; /* 줄 간격 */
+}
+
+.button-container {
+  display: flex; /* 플렉스 박스 사용 */
+  margin-bottom: 20px; /* 버튼 아래 여백 추가 */
+  justify-content: space-between; /* 버튼 간격 조정 */
+  margin-top: 20px; /* 위쪽 여백 */
+}
+
+.btn {
+  flex: 1; /* 버튼 넓이 균일하게 설정 */
+  margin-right: 10px; /* 오른쪽 버튼과 간격 */
+}
+
+.btn:last-child {
+  margin-right: 0; /* 마지막 버튼 오른쪽 간격 제거 */
+}
+
+.read-container {
+  padding: 20px;
+}
+
+.button-container {
+  margin-top: 20px;
+}
+
+.review-section {
+  margin-top: 30px;
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+}
+
+.review-list li {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.review-date {
+  font-size: 0.8em;
+  color: #777;
+}

@@ -5,7 +5,7 @@ import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import defaultImg from '../../assets/no-img.gif'
-import './Read.css'
+import './read.css'
 
 interface GroundsDTO {
   gphotosDTOList: GphotosDTO[]
@@ -146,6 +146,12 @@ export default function Read() {
       return
     }
 
+    // 동일한 사람의 중복 예약 확인
+    if (groundsReviewsDTO && groundsReviewsDTO.some(review => review.email === email)) {
+      alert('이미 예약이 존재합니다.')
+      return
+    }
+
     fetch(`http://localhost:8080/api/members/email/${email}`, {
       method: 'GET',
       headers: {
@@ -210,22 +216,32 @@ export default function Read() {
       </button>
 
       <div className="carousel-container">
-        <Slider {...sliderSettings}>
-          {groundsDTO.gphotosDTOList.map((photo, idx) => (
-            <div key={idx} className="carousel-slide">
-              <img
-                src={
-                  photo.path
-                    ? `http://localhost:8080/api/display?fileName=${photo.path}`
-                    : defaultImg
-                }
-                alt={`슬라이드 이미지 ${idx + 1}`}
-                className="carousel-image"
-                onError={addDefaultImg}
-              />
-            </div>
-          ))}
-        </Slider>
+        {groundsDTO.gphotosDTOList.length === 1 ? (
+          <img
+            src={`http://localhost:8080/api/display?fileName=${groundsDTO.gphotosDTOList[0].path}`}
+            alt="단일 이미지"
+            className="single-image"
+            onError={addDefaultImg}
+            style={{width: '100%', height: 'auto', objectFit: 'cover'}}
+          />
+        ) : (
+          <Slider {...sliderSettings}>
+            {groundsDTO.gphotosDTOList.map((photo, idx) => (
+              <div key={idx} className="carousel-slide">
+                <img
+                  src={
+                    photo.path
+                      ? `http://localhost:8080/api/display?fileName=${photo.path}`
+                      : defaultImg
+                  }
+                  alt={`슬라이드 이미지 ${idx + 1}`}
+                  className="carousel-image"
+                  onError={addDefaultImg}
+                />
+              </div>
+            ))}
+          </Slider>
+        )}
       </div>
 
       <div className="card">

@@ -141,7 +141,7 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
               <li className="nav-item" style={{marginBottom: '5px'}}>
                 <a
                   className="nav-link"
-                  href="/members/mypage"
+                  href="/members/profile"
                   style={{display: 'block', color: 'white'}}>
                   내 페이지
                 </a>

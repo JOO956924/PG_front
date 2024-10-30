@@ -236,6 +236,24 @@ export default function ModifyGround() {
       .catch(err => console.log('구장 수정 오류:', err))
   }
 
+  const handleDelete = useCallback(() => {
+    if (window.confirm('정말로 이 글을 삭제하시겠습니까?')) {
+      fetch(`http://localhost:8080/api/grounds/remove/${gno}`, {
+        method: 'POST', // POST 방식 유지
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({pageRequestDTO: {}}) // PageRequestDTO를 필요 시 전달
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('구장 삭제에 실패했습니다.')
+          navigate('/grounds/list')
+        })
+        .catch(err => console.error('구장 삭제 오류:', err))
+    }
+  }, [gno, token, navigate])
+
   return (
     <div style={{padding: '0 15%', overflowY: 'auto', maxHeight: '80vh'}}>
       <form onSubmit={handleSubmit} id="frmModify">
@@ -315,6 +333,13 @@ export default function ModifyGround() {
 
         <button type="submit" className="btn btn-primary">
           변경 사항 저장
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="btn btn-danger"
+          style={{marginLeft: '10px'}}>
+          글 삭제
         </button>
       </form>
     </div>
