@@ -41,7 +41,6 @@ interface PageRequestDTO {
   day: string // day 필드 추가
 }
 
-// PageResultDTO 구조 정의
 interface PageResultDTO {
   dtoList: GroundsDTO[]
   page: number
@@ -52,7 +51,6 @@ interface PageResultDTO {
   next: boolean
 }
 
-// GroundsReviews 데이터 구조 정의
 interface GroundsReviewsDTO {
   gno: number
   grno: number
@@ -69,12 +67,11 @@ export default function Read() {
   const token = useToken()
   const navigate = useNavigate()
   const [query, setQuery] = useSearchParams()
-  const location = useLocation() // 현재 URL 정보를 가져오기 위한 useLocation 사용
+  const location = useLocation()
   const [groundsDTO, setGroundsDTO] = useState<GroundsDTO | null>(null)
   const [groundsReviewsDTO, setGroundsReviewsDTO] = useState<GroundsReviewsDTO[] | null>(
     null
   )
-
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
   }
@@ -84,13 +81,13 @@ export default function Read() {
     size: '',
     type: '',
     keyword: '',
-    day: '' // day 값을 관리
+    day: ''
   })
 
   const [pageResultDTO, setPageResultDTO] = useState<PageResultDTO | null>(null)
   const [keywords, setKeywords] = useState(query.get('keyword') || '')
   const [types, setTypes] = useState(query.get('type') || '')
-  const [selectedDay, setSelectedDay] = useState(query.get('day') || '') // URL에서 day 값을 가져와서 유지
+  const [selectedDay, setSelectedDay] = useState(query.get('day') || '')
 
   useEffect(() => {
     if (token && gno) {
@@ -113,12 +110,83 @@ export default function Read() {
     }
   }, [gno, token])
 
+  useEffect(() => {
+    if (token && gno) {
+      fetch(`http://localhost:8080/api/greviews/all/${gno}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`)
+          }
+          return res.json()
+        })
+        .then(data => {
+          setGroundsReviewsDTO(data)
+        })
+        .catch(err => console.log('Error:', err))
+    }
+  }, [gno, token])
+
   const goModify = (gno: number) => {
     navigate(
       `/grounds/modify?gno=${gno}&page=${pageRequestDTO.page}&type=${
         pageRequestDTO.type
       }&keyword=${pageRequestDTO.keyword}&day=${selectedDay || query.get('day')}`
     )
+  }
+
+  const handleReservation = () => {
+    const email = sessionStorage.getItem('email')
+    if (!email || !gno) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
+    fetch(`http://localhost:8080/api/members/email/${email}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+        return res.json()
+      })
+      .then(memberData => {
+        const reviewData = {
+          gno: Number(gno),
+          mid: memberData.mid,
+          email: memberData.email,
+          name: memberData.name
+        }
+
+        fetch(`http://localhost:8080/api/greviews/${gno}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(reviewData)
+        })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`)
+            }
+            return res.json()
+          })
+          .then(data => {
+            alert('예약이 성공적으로 등록되었습니다.')
+            setGroundsReviewsDTO(prev => [...(prev || []), data])
+          })
+          .catch(err => console.log('Error:', err))
+      })
+      .catch(err => console.log('Error:', err))
   }
 
   if (!groundsDTO) {
@@ -137,12 +205,10 @@ export default function Read() {
 
   return (
     <div className="container">
-      {/* 오른쪽 상단 수정 버튼 */}
       <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
         수정
       </button>
 
-      {/* 상단 캐러셀 */}
       <div className="carousel-container">
         <Slider {...sliderSettings}>
           {groundsDTO.gphotosDTOList.map((photo, idx) => (
@@ -162,7 +228,6 @@ export default function Read() {
         </Slider>
       </div>
 
-      {/* 경기장 정보 */}
       <div className="card">
         <div className="card-header">
           <div className="ground-title">{groundsDTO.gtitle}</div>
@@ -174,26 +239,28 @@ export default function Read() {
               <h1>{groundsDTO.gtitle}</h1>
               <p>Location: {groundsDTO.location}</p>
               <p>Sports: {groundsDTO.sports}</p>
-              <p>Reservation: {groundsDTO.reservation}</p>
               <p>Grounds Time: {groundsDTO.groundstime}</p>
-              <p>Info: {groundsDTO.info}</p>
               <p>Price: {groundsDTO.price}</p>
               <p>Max People: {groundsDTO.maxpeople}</p>
-              {/* <p>Now People: {groundsDTO.nowpeople}</p> */}
               <p>Registered Date: {new Date(groundsDTO.regDate).toLocaleString()}</p>
               <p>Modified Date: {new Date(groundsDTO.modDate).toLocaleString()}</p>
             </div>
           </div>
           <div className="card-description">경기장 설명 및 대여 규정</div>
+          <div>
+            <p>Info: {groundsDTO.info}</p>
+          </div>
           <div className="reservation-input">예약 일정 입력</div>
         </div>
       </div>
 
-      {/* 리뷰 */}
+      <button className="reservation-button" onClick={handleReservation}>
+        예약 등록
+      </button>
+
       <div className="card">
         <div className="card-header">
           <h2>구장 예약</h2>
-          <button className="write-review-button">예약 등록</button>
         </div>
         <div className="card-body">
           {groundsReviewsDTO ? (

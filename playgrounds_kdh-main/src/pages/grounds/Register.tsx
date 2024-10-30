@@ -9,7 +9,7 @@ interface GphotosDTO {
 }
 
 export default function Register() {
-  const [query] = useSearchParams() // URL의 쿼리를 받을 때 사용
+  const [query] = useSearchParams() // url주소의 쿼리를 받을 때
   const token = useToken()
   const navigate = useNavigate()
 
@@ -26,14 +26,15 @@ export default function Register() {
   const [labelFile, setLabelFile] = useState('')
   const [inputHiddens, setInputHiddens] = useState('')
   const [todayDate, setTodayDate] = useState<string>('')
-  const [formattedDay, setFormattedDay] = useState<string>('') // 선택된 날짜를 저장할 상태
-  const [membersEmail, setMembersEmail] = useState<string>('') // 로그인된 사용자의 email 저장
+  const [formattedDay, setFormattedDay] = useState<string>('') // 선택된 날짜를 저장할 state
+  const [membersMid, setMembersMid] = useState<string>('') // 로그인된 사용자의 mid 저장
 
-  // 세션 스토리지에서 email 가져오기
+  // 세션 스토리지에서 mid 가져오기
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('email')
-    if (storedEmail) {
-      setMembersEmail(storedEmail) // 세션 스토리지에서 가져온 email 값 저장
+    const storedMid = sessionStorage.getItem('mid')
+    console.log(sessionStorage.getItem('mid'))
+    if (storedMid) {
+      setMembersMid(storedMid) // 세션 스토리지에서 가져온 mid 값 저장
     }
 
     const today = new Date()
@@ -57,10 +58,6 @@ export default function Register() {
     setFormattedDay(formattedDate) // YYYYMMDD로 변환된 날짜를 저장
   }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMembersEmail(e.target.value) // 사용자가 입력한 이메일 저장
-  }
-
   const checkExtension = useCallback((fileName: string, fileSize: number) => {
     const maxSize = 1024 * 1024 * 10
     if (fileSize >= maxSize) {
@@ -82,24 +79,24 @@ export default function Register() {
     const flistLength = flist?.length ?? 0
 
     const tmpLabel =
-      (flist?.length ?? 0) - 1 === 0 ? '' : `${fileName} 외 ${(flist?.length ?? 0) - 1}개`
+      (flist?.length ?? 0) - 1 == 0 ? '' : `${fileName} 외 ${(flist?.length ?? 0) - 1}개`
     setLabelFile(tmpLabel)
 
-    let appended = false
+    let appended = false // 파일이 잘 추가되는지 확인
     for (let i = 0; i < flistLength; i++) {
       if (!checkExtension(flist[i].name, flist[i].size)) {
         if (refFile?.current?.value !== undefined) refFile.current.value = ''
         appended = false
         break
       }
-      formData.append('gphotosName', flist[i].name)
       formData.append('uploadFiles', flist[i])
       appended = true
     }
     if (!appended) return
 
-    formData.append('members_email', membersEmail)
+    formData.append('members_mid', membersMid)
 
+    for (const value of formData.values()) console.log(value)
     const url = 'http://localhost:8080/api/uploadAjax'
     fetch(url, {
       method: 'POST',
@@ -110,29 +107,50 @@ export default function Register() {
     })
       .then(res => res.json())
       .then(json => {
+        console.log(json)
         showResult(json)
       })
       .catch(err => console.log('Error: ', err))
-  }, [labelFile, membersEmail])
+  }, [labelFile])
 
   function showResult(arr: []) {
     const uploadUL = document.querySelector('.uploadResult ul')
+    if (!uploadUL) {
+      console.error('Upload result element not found.')
+      return
+    }
+
     let str = ''
     const url = 'http://localhost:8080/api/display'
     for (let i = 0; i < arr.length; i++) {
-      str += `<li data-name='${arr[i].fileName}' data-path='${arr[i].folderPath}' data-uuid='${arr[i].uuid}' data-file='${arr[i].photosURL}'><div>
-     <button class="removeBtn" type="button">X</button>
-     <img src="${url}?fileName=${arr[i].thumbnailURL}">
-     </div></li>`
+      const fileName = arr[i].fileName || '' // 여기서 값이 없으면 빈 문자열로 설정
+      const folderPath = arr[i].folderPath || ''
+      const uuid = arr[i].uuid || ''
+      const thumbnailURL = arr[i].thumbnailURL || ''
+
+      str += `<li data-name='${fileName}' data-path='${folderPath}' data-uuid='${uuid}' data-file='${thumbnailURL}'>
+                <div>
+                  <button class="removeBtn" type="button">X</button>
+                  <img src="${url}?fileName=${thumbnailURL}">
+                </div>
+              </li>`
     }
-    if (uploadUL) uploadUL.innerHTML = str
+    uploadUL.innerHTML = str
+
     const removeBtns = document.querySelectorAll('.removeBtn')
     for (let i = 0; i < removeBtns.length; i++) {
       removeBtns[i].onclick = function () {
         const removeUrl = 'http://localhost:8080/api/removeFile?fileName='
         const targetLi = this.closest('li')
-        const gphotosName = targetLi?.dataset.name
-        fetch(removeUrl + gphotosName, {
+        if (!targetLi) return
+
+        const fileName = targetLi.dataset.file || '' // fileName이 빈 값일 때 처리
+        if (!fileName) {
+          console.error('File name is undefined.')
+          return
+        }
+
+        fetch(removeUrl + fileName, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`
@@ -140,9 +158,11 @@ export default function Register() {
         })
           .then(response => response.json())
           .then(json => {
-            if (json === true) targetLi?.remove()
-            document.querySelector('#custom-label')!.innerHTML = ''
-            ;(document.querySelector('#fileInput') as HTMLInputElement).value = ''
+            if (json === true) targetLi.remove()
+            const customLabel = document.querySelector('#custom-label')
+            const fileInput = document.querySelector('#fileInput')
+            if (customLabel) customLabel.innerHTML = ''
+            if (fileInput) fileInput.value = ''
           })
           .catch(err => console.log('Error occurred: ', err))
       }
@@ -174,11 +194,38 @@ export default function Register() {
       }
     }
 
-    const page = query.get('page') ?? '1'
-    const type = query.get('type') ?? ''
-    const keyword = query.get('keyword') ?? ''
+    let compare = query.get('page') // 기본적으로 페이지 1을 사용
+    const page = compare === 'null' || compare == null ? '1' : compare
+    compare = query.get('type')
+    const type = compare === 'null' || compare == null ? '' : compare
+    compare = query.get('keyword')
+    const keyword = compare === 'null' || compare == null ? '' : compare
 
-    console.log(membersEmail)
+    const formData = new FormData(e.currentTarget)
+
+    let str = ''
+    const liArr = document.querySelectorAll('.uploadResult ul li')
+    let arr: GphotosDTO[] = []
+
+    for (let i = 0; i < liArr.length; i++) {
+      str += `
+        <input type="hidden" name="gphotosDTOList[${i}].gphotosName" value="${liArr[i].dataset.name}" />
+        <input type="hidden" name="gphotosDTOList[${i}].path" value="${liArr[i].dataset.path}" />
+        <input type="hidden" name="gphotosDTOList[${i}].uuid" value="${liArr[i].dataset.uuid}" />
+      `
+      arr.push({
+        gphotosName: liArr[i].dataset.name,
+        path: liArr[i].dataset.path,
+        uuid: liArr[i].dataset.uuid
+      })
+    }
+    setInputHiddens(str)
+
+    arr.forEach((photo, index) => {
+      formData.append(`phtosDTOList[${index}].uuid`, photo.uuid)
+      formData.append(`phtosDTOList[${index}].gphotosName`, photo.gphotosName)
+      formData.append(`phtosDTOList[${index}].path`, photo.path)
+    })
 
     const formDataObj = {
       groundstime: refGroundsTime.current?.value ?? '',
@@ -188,18 +235,12 @@ export default function Register() {
       maxpeople: refMaxPeople.current?.value ?? '',
       price: refPrice.current?.value ?? '',
       sports: refSports.current?.value ?? '',
-      day: formattedDay,
-      members_email: membersEmail, // 세션에서 가져온 email을 members_email로 추가
-      gphotosDTOList: Array.from(document.querySelectorAll('.uploadResult ul li')).map(
-        (li, index) => ({
-          uuid: li.getAttribute('data-uuid'),
-          gphotosName: li.getAttribute('data-name'),
-          path: li.getAttribute('data-path')
-        })
-      )
+      day: formattedDay, // 선택된 날짜를 YYYYMMDD 형식으로 저장
+      members_mid: membersMid, // 세션 스토리지에서 가져온 mid 추가
+      gphotosDTOList: arr
     }
-    console.log(formDataObj)
 
+    let resMessage = ''
     if (token) {
       fetch('http://localhost:8080/api/grounds/register', {
         method: 'POST',
@@ -211,11 +252,13 @@ export default function Register() {
       })
         .then(res => res.text())
         .then(data => {
-          navigate(
-            `/grounds/list?page=${page}&type=${type}&keyword=${keyword}&$msg=${data}`
-          )
+          console.log(data)
+          resMessage = data
         })
         .catch(err => console.log('Error: ' + err))
+      navigate(
+        `/grounds/list?page=${page}&type=${type}&keyword=${keyword}&$msg=${resMessage}`
+      )
     } else {
       navigate('/')
     }
@@ -244,22 +287,6 @@ export default function Register() {
           />
         </div>
 
-        {/* Email 입력 필드 */}
-        <div className="form-group">
-          <label htmlFor="email" style={{fontSize: '22px'}}>
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={membersEmail}
-            onChange={handleEmailChange}
-            style={{fontSize: '22px'}}
-            id="email"
-            className="form-control"
-            placeholder="이메일을 입력하세요"
-          />
-        </div>
         {/* 구장 이름 */}
         <div className="form-group">
           <label htmlFor="gtitle" style={{fontSize: '22px'}}>
@@ -356,7 +383,7 @@ export default function Register() {
           />
         </div>
 
-        {/* Day (달러기 필드) */}
+        {/* Day (달력 필드) */}
         <div className="form-group">
           <label htmlFor="day" style={{fontSize: '22px'}}>
             Day
@@ -406,7 +433,7 @@ export default function Register() {
             style={{
               fontSize: '30px',
               background: 'white',
-              color: 'bd5d38',
+              color: 'black',
               border: '1px solid #bd5d38'
             }}>
             Submit

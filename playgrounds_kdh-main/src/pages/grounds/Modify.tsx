@@ -6,7 +6,6 @@ interface GphotosDTO {
   uuid: string | Blob
   gphotosName: string | Blob
   path: string | Blob
-  thumbnailURL?: string | Blob
 }
 
 export default function ModifyGround() {
@@ -27,7 +26,6 @@ export default function ModifyGround() {
   const [formattedDay, setFormattedDay] = useState<string>('')
   const [todayDate, setTodayDate] = useState<string>('')
   const [membersMid, setMembersMid] = useState<string>('')
-  const [existingPhotos, setExistingPhotos] = useState<GphotosDTO[]>([])
 
   const gno = query.get('gno')
 
@@ -66,7 +64,9 @@ export default function ModifyGround() {
           refPrice.current!.value = String(ground.price)
           refSports.current!.value = ground.sports
           setFormattedDay(ground.day)
-          setExistingPhotos(ground.gphotosDTOList || [])
+
+          // 기존 사진을 썸네일로 표시
+          showResult(ground.gphotosDTOList || [])
         })
         .catch(err => console.error('구장 로딩 오류:', err))
     }
@@ -74,7 +74,8 @@ export default function ModifyGround() {
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = new Date(e.target.value)
-    setFormattedDay(formatDateToYYYYMMDD(selectedDate))
+    const formattedDate = formatDateToYYYYMMDD(selectedDate)
+    setFormattedDay(formattedDate)
   }
 
   const checkExtension = useCallback((fileName: string, fileSize: number) => {
@@ -97,18 +98,16 @@ export default function ModifyGround() {
     const flist = refFile.current?.files ?? []
     const flistLength = flist.length
 
-    const tmpLabel =
-      (flist?.length ?? 0) - 1 === 0 ? '' : `${fileName} 외 ${(flist?.length ?? 0) - 1}개`
+    const tmpLabel = flistLength - 1 === 0 ? '' : `${fileName} 외 ${flistLength - 1}개`
     setLabelFile(tmpLabel)
 
     let appended = false
     for (let i = 0; i < flistLength; i++) {
       if (!checkExtension(flist[i].name, flist[i].size)) {
-        if (refFile.current) refFile.current.value = ''
+        if (refFile?.current?.value !== undefined) refFile.current.value = ''
         appended = false
         break
       }
-      formData.append('gphotosName', flist[i].name)
       formData.append('uploadFiles', flist[i])
       appended = true
     }
@@ -116,69 +115,70 @@ export default function ModifyGround() {
 
     formData.append('members_mid', membersMid)
 
-    const url = 'http://localhost:8080/api/uploadAjax'
-    fetch(url, {
+    fetch('http://localhost:8080/api/uploadAjax', {
       method: 'POST',
       body: formData,
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(json => {
-        console.log(json)
-        showResult(json)
-      })
-      .catch(err => console.log('Error: ', err))
-  }, [labelFile])
-
-  function showResult(arr: GphotosDTO[]) {
-    const uploadUL = document.querySelector('.uploadResult ul')
-    const url = 'http://localhost:8080/api/display'
-    let str = ''
-
-    arr.forEach(item => {
-      const thumbnailPath = item.thumbnailURL || item.path
-      if (thumbnailPath) {
-        str += `<li data-name='${arr[i].fileName}' data-path='${arr[i].folderPath}'
-     data-uuid='${arr[i].uuid}' data-file='${arr[i].photosURL}'><div>
-     <button class="removeBtn" type="button">X</button>
-     <img src="${url}?fileName=${arr[i].thumbnailURL}">
-     </div></li>`
-      }
-    })
-    if (uploadUL) {
-      uploadUL.innerHTML = str
-
-      uploadUL.querySelectorAll('.removeBtn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const targetLi = (e.target as HTMLElement).closest('li')
-          if (targetLi) {
-            const uuid = targetLi.getAttribute('data-uuid')
-            if (uuid) {
-              removeImage(uuid)
-            }
-          }
-        })
-      })
-    }
-
-    setExistingPhotos(arr)
-  }
-
-  const removeImage = (uuid: string) => {
-    const deleteUrl = `http://localhost:8080/api/removeFile/${uuid}`
-    fetch(deleteUrl, {
-      method: 'POST',
       headers: {Authorization: `Bearer ${token}`}
     })
-      .then(response => response.json())
-      .then(success => {
-        if (success) {
-          setExistingPhotos(prevPhotos => prevPhotos.filter(p => p.uuid !== uuid))
+      .then(res => res.json())
+      .then(json => showResult(json))
+      .catch(err => console.log('파일 업로드 오류:', err))
+  }, [labelFile, membersMid, token])
+
+  function showResult(arr: []) {
+    const uploadUL = document.querySelector('.uploadResult ul')
+    if (!uploadUL) {
+      console.error('Upload result element not found.')
+      return
+    }
+
+    let str = ''
+    const url = 'http://localhost:8080/api/display'
+    for (let i = 0; i < arr.length; i++) {
+      const fileName = arr[i].fileName || '' // 여기서 값이 없으면 빈 문자열로 설정
+      const folderPath = arr[i].folderPath || ''
+      const uuid = arr[i].uuid || ''
+      const thumbnailURL = arr[i].thumbnailURL || ''
+
+      str += `<li data-name='${fileName}' data-path='${folderPath}' data-uuid='${uuid}' data-file='${thumbnailURL}'>
+                <div>
+                  <button class="removeBtn" type="button">X</button>
+                  <img src="${url}?fileName=${thumbnailURL}">
+                </div>
+              </li>`
+    }
+    uploadUL.innerHTML = str
+
+    const removeBtns = document.querySelectorAll('.removeBtn')
+    for (let i = 0; i < removeBtns.length; i++) {
+      removeBtns[i].onclick = function () {
+        const removeUrl = 'http://localhost:8080/api/removeFile?fileName='
+        const targetLi = this.closest('li')
+        if (!targetLi) return
+
+        const fileName = targetLi.dataset.file || '' // fileName이 빈 값일 때 처리
+        if (!fileName) {
+          console.error('File name is undefined.')
+          return
         }
-      })
-      .catch(err => console.log('오류 발생: ', err))
+
+        fetch(removeUrl + fileName, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+          .then(response => response.json())
+          .then(json => {
+            if (json === true) targetLi.remove()
+            const customLabel = document.querySelector('#custom-label')
+            const fileInput = document.querySelector('#fileInput')
+            if (customLabel) customLabel.innerHTML = ''
+            if (fileInput) fileInput.value = ''
+          })
+          .catch(err => console.log('Error occurred: ', err))
+      }
+    }
   }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -202,6 +202,13 @@ export default function ModifyGround() {
       }
     }
 
+    const liArr = document.querySelectorAll('.uploadResult ul li')
+    const gphotosDTOList: GphotosDTO[] = Array.from(liArr).map(li => ({
+      uuid: li.dataset.uuid || '',
+      gphotosName: li.dataset.name || '',
+      path: li.dataset.path || ''
+    }))
+
     const formDataObj = {
       gno,
       groundstime: refGroundsTime.current?.value ?? '',
@@ -213,7 +220,7 @@ export default function ModifyGround() {
       sports: refSports.current?.value ?? '',
       day: formattedDay,
       members_mid: membersMid,
-      gphotosDTOList: existingPhotos
+      gphotosDTOList
     }
 
     fetch('http://localhost:8080/api/grounds/modify', {
@@ -225,11 +232,12 @@ export default function ModifyGround() {
       body: JSON.stringify(formDataObj)
     })
       .then(res => res.text())
-      .then(() => navigate(`/grounds/read?gno=${gno}`))
+      .then(data => navigate(`/grounds/read?gno=${gno}`))
       .catch(err => console.log('구장 수정 오류:', err))
   }
+
   return (
-    <>
+    <div style={{padding: '0 15%', overflowY: 'auto', maxHeight: '80vh'}}>
       <form onSubmit={handleSubmit} id="frmModify">
         <div className="form-group">
           <label htmlFor="groundstime">경기 시간</label>
@@ -287,31 +295,6 @@ export default function ModifyGround() {
           />
         </div>
 
-        {/* 기존 사진 정보 미리보기 */}
-        <div className="existing-photos">
-          <label>기존 사진:</label>
-          <ul>
-            {existingPhotos.map(GphotosDTO => {
-              const thumbnailPath = GphotosDTO.thumbnailURL || GphotosDTO.path
-              return thumbnailPath ? (
-                <li key={GphotosDTO.uuid as string}>
-                  <img
-                    src={`http://localhost:8080/api/display?fileName=${thumbnailPath}`}
-                    alt="thumbnail"
-                    style={{width: '100px', height: 'auto'}}
-                  />
-                  <p>{GphotosDTO.gphotosName}</p>
-                  <button
-                    type="button"
-                    onClick={() => removeImage(GphotosDTO.uuid as string)}>
-                    X
-                  </button>
-                </li>
-              ) : null
-            })}
-          </ul>
-        </div>
-
         <div className="form-group">
           <label htmlFor="fileInput">새 이미지 파일 선택</label>
           <input
@@ -325,6 +308,7 @@ export default function ModifyGround() {
           <label>{labelFile}</label>
         </div>
 
+        {/* 업로드된 사진 미리보기 */}
         <div className="uploadResult">
           <ul></ul>
         </div>
@@ -333,6 +317,6 @@ export default function ModifyGround() {
           변경 사항 저장
         </button>
       </form>
-    </>
+    </div>
   )
 }
