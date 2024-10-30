@@ -1,0 +1,99 @@
+/* 공통 폼 스타일 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-control {
+  padding: 10px;
+  font-size: 18px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* 파일 선택 버튼 스타일 */
+.custom-file-input {
+  margin-top: 10px;
+}
+
+#custom-label {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+/* 달력 날짜 선택 컨테이너 */
+.calendar-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* 달력 날짜 버튼 스타일 */
+.calendar-date-button {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.calendar-date-button:hover {
+  background-color: #e0e0e0;
+}
+
+.calendar-date-button.selected {
+  background-color: #bd5d38;
+  color: white;
+}
+
+/* 업로드된 파일 리스트 스타일 */
+.uploadResult ul {
+  list-style: none;
+  padding: 0;
+}
+
+.uploadResult li {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.uploadResult img {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+/* 파일 제거 버튼 스타일 */
+.removeBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.removeBtn:hover {
+  background-color: darkred;
+}
+
+/* 저장 버튼 스타일 */
+#btnSave {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#btnSave:hover {
+  background-color: #bd5d38;
+  color: white;
+}

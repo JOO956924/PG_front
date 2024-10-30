@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
 
 interface MemberDTO {
@@ -14,6 +15,7 @@ interface MemberDTO {
 const Profile: React.FC = () => {
   const [member, setMember] = useState<MemberDTO | null>(null)
   const token = useToken()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const email = sessionStorage.getItem('email')
@@ -46,10 +48,11 @@ const Profile: React.FC = () => {
       <h1>회원 프로필</h1>
       <p>이메일: {member.email}</p>
       <p>이름: {member.name}</p>
-      <p>현재 캐쉬: {member.nowcash}</p>
-      <p>충전한 캐쉬: {member.addcash}</p>
+      <p>캐쉬: {member.nowcash.toLocaleString()} 원</p>
+      {/* <p>충전한 캐쉬: {member.addcash}</p> */}
       <p>레벨: {member.level}</p>
       <p>선호 종목: {member.prefer}</p>
+      <button onClick={() => navigate('/members/charge')}>캐쉬 충전</button>
     </div>
   )
 }

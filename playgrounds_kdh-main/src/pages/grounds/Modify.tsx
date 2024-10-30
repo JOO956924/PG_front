@@ -289,12 +289,19 @@ export default function ModifyGround() {
             name="maxpeople"
             ref={refMaxPeople}
             className="form-control"
+            min="1" // 최소 1 이상의 값만 입력 가능
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="price">가격</label>
-          <input type="number" name="price" ref={refPrice} className="form-control" />
+          <input
+            type="number"
+            name="price"
+            ref={refPrice}
+            className="form-control"
+            min="1"
+          />
         </div>
 
         <div className="form-group">

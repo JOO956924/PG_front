@@ -3,10 +3,10 @@ import {useNavigate, useSearchParams} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
 import './BoardStyles.css'
 
-interface PhotosDTO {
-  uuid: string
-  photosName: string
-  path: string
+interface BphotosDTO {
+  uuid: string | Blob
+  bphotosName: string | Blob
+  path: string | Blob
 }
 
 export default function Register() {
@@ -17,10 +17,11 @@ export default function Register() {
   const refTitle = useRef<HTMLInputElement | null>(null)
   const refBody = useRef<HTMLTextAreaElement | null>(null)
   const refFile = useRef<HTMLInputElement | null>(null)
+  const refLabelFile = useRef<HTMLLabelElement | null>(null)
   const [labelFile, setLabelFile] = useState<string>('')
-  const [uploadedPhotos, setUploadedPhotos] = useState<PhotosDTO[]>([])
+  const [inputHiddens, setInputHiddens] = useState('')
 
-  // 세션 스토리지에서 이메일 가져오기
+  // 세션 스토리지에서 email 가져오기
   const email = sessionStorage.getItem('email') || ''
 
   const checkExtension = useCallback((fileName: string, fileSize: number) => {
@@ -49,7 +50,7 @@ export default function Register() {
     let appended = false
     for (let i = 0; i < flistLength; i++) {
       if (!checkExtension(flist[i].name, flist[i].size)) {
-        refFile.current!.value = ''
+        if (refFile?.current?.value !== undefined) refFile.current.value = ''
         appended = false
         break
       }
@@ -58,7 +59,10 @@ export default function Register() {
     }
     if (!appended) return
 
-    fetch('http://localhost:8080/api/uploadAjax', {
+    formData.append('email', email) // email 추가
+
+    const url = 'http://localhost:8080/api/uploadAjax'
+    fetch(url, {
       method: 'POST',
       body: formData,
       headers: {
@@ -66,9 +70,11 @@ export default function Register() {
       }
     })
       .then(res => res.json())
-      .then(showResult)
+      .then(json => {
+        showResult(json)
+      })
       .catch(err => console.log('Error: ', err))
-  }, [token])
+  }, [labelFile, email, token])
 
   function showResult(arr: []) {
     const uploadUL = document.querySelector('.uploadResult ul')
@@ -80,7 +86,7 @@ export default function Register() {
     let str = ''
     const url = 'http://localhost:8080/api/display'
     for (let i = 0; i < arr.length; i++) {
-      const fileName = arr[i].fileName || '' // 여기서 값이 없으면 빈 문자열로 설정
+      const fileName = arr[i].fileName || ''
       const folderPath = arr[i].folderPath || ''
       const uuid = arr[i].uuid || ''
       const thumbnailURL = arr[i].thumbnailURL || ''
@@ -101,7 +107,7 @@ export default function Register() {
         const targetLi = this.closest('li')
         if (!targetLi) return
 
-        const fileName = targetLi.dataset.file || '' // fileName이 빈 값일 때 처리
+        const fileName = targetLi.dataset.file || ''
         if (!fileName) {
           console.error('File name is undefined.')
           return
@@ -126,17 +132,47 @@ export default function Register() {
     }
   }
 
+  const transform = (str: string) => {
+    return str.replace(/\n/g, '')
+  }
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const page = query.get('page') || '1'
     const type = query.get('type') || ''
     const keyword = query.get('keyword') || ''
 
+    const formData = new FormData(e.currentTarget)
+
+    let str = ''
+    const liArr = document.querySelectorAll('.uploadResult ul li')
+    let arr: BphotosDTO[] = []
+
+    for (let i = 0; i < liArr.length; i++) {
+      str += `
+        <input type="hidden" name="bphotosDTOList[${i}].bphotosName" value="${liArr[i].dataset.name}" />
+        <input type="hidden" name="bphotosDTOList[${i}].path" value="${liArr[i].dataset.path}" />
+        <input type="hidden" name="bphotosDTOList[${i}].uuid" value="${liArr[i].dataset.uuid}" />
+      `
+      arr.push({
+        bphotosName: liArr[i].dataset.name,
+        path: liArr[i].dataset.path,
+        uuid: liArr[i].dataset.uuid
+      })
+    }
+    setInputHiddens(str)
+
+    arr.forEach((photo, index) => {
+      formData.append(`phtosDTOList[${index}].uuid`, photo.uuid)
+      formData.append(`phtosDTOList[${index}].bphotosName`, photo.bphotosName)
+      formData.append(`phtosDTOList[${index}].path`, photo.path)
+    })
+
     const formDataObj = {
       title: refTitle.current?.value ?? '',
       body: refBody.current?.value ?? '',
-      email: email, // 세션 스토리지에서 가져온 이메일 사용
-      photosDTOList: uploadedPhotos
+      email: email,
+      bphotosDTOList: arr
     }
 
     if (!refTitle.current?.value) {
@@ -178,11 +214,11 @@ export default function Register() {
           <input
             type="email"
             name="email"
-            value={email} // 세션 스토리지에서 가져온 이메일 고정
+            value={email}
             className="form-control"
             id="email"
             placeholder="이메일을 입력하세요"
-            readOnly // 수정 불가로 설정
+            readOnly
           />
         </div>
         <div className="form-group">
@@ -196,7 +232,7 @@ export default function Register() {
             className="form-control"
             id="title"
             placeholder="타이틀을 입력하세요"
-            required // 필수 입력으로 설정
+            required
           />
         </div>
         <div className="form-group">
@@ -209,25 +245,32 @@ export default function Register() {
             className="form-control content-textarea"
             id="body"
             placeholder="본문 내용을 입력하세요"
-            required // 필수 입력으로 설정
+            required
           />
         </div>
         <div className="form-group">
-          <button
-            type="button"
-            className="file-select-button btn btn-primary"
-            onClick={() => refFile.current?.click()}>
-            사진 추가
-          </button>
+          <label
+            htmlFor="fileInput"
+            style={{fontSize: '22px'}}
+            ref={refLabelFile}
+            defaultValue={labelFile ?? ''}>
+            Select Image Files
+          </label>
           <input
             type="file"
-            ref={refFile}
-            className="file-input"
-            multiple
-            onChange={fileChange}
             id="fileInput"
-            style={{display: 'none'}} // 숨김 처리
-          />
+            ref={refFile}
+            style={{fontSize: '22px'}}
+            onChange={fileChange}
+            className="custom-file-input form-control files"
+            multiple></input>
+          <label id="custom-label"></label>
+        </div>
+        {/* Hidden Inputs */}
+        <div
+          className="box"
+          dangerouslySetInnerHTML={{__html: transform(inputHiddens)}}></div>
+        <div className="form-group">
           <button type="submit" className="btn btn-success">
             게시글 등록
           </button>

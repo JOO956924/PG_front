@@ -115,54 +115,37 @@ export default function Register() {
 
   function showResult(arr: []) {
     const uploadUL = document.querySelector('.uploadResult ul')
-    if (!uploadUL) {
-      console.error('Upload result element not found.')
-      return
-    }
-
     let str = ''
     const url = 'http://localhost:8080/api/display'
     for (let i = 0; i < arr.length; i++) {
-      const fileName = arr[i].fileName || '' // 여기서 값이 없으면 빈 문자열로 설정
-      const folderPath = arr[i].folderPath || ''
-      const uuid = arr[i].uuid || ''
-      const thumbnailURL = arr[i].thumbnailURL || ''
-
-      str += `<li data-name='${fileName}' data-path='${folderPath}' data-uuid='${uuid}' data-file='${thumbnailURL}'>
-                <div>
-                  <button class="removeBtn" type="button">X</button>
-                  <img src="${url}?fileName=${thumbnailURL}">
-                </div>
-              </li>`
+      str += `<li data-name='${arr[i].fileName}' data-path='${arr[i].folderPath}'
+      data-uuid='${arr[i].uuid}' data-file='${arr[i].photosURL}'><div>
+      <button class="removeBtn" type="button">X</button>
+      <img src="${url}?fileName=${arr[i].thumbnailURL}">
+      </div></li>`
     }
     uploadUL.innerHTML = str
-
     const removeBtns = document.querySelectorAll('.removeBtn')
     for (let i = 0; i < removeBtns.length; i++) {
       removeBtns[i].onclick = function () {
         const removeUrl = 'http://localhost:8080/api/removeFile?fileName='
         const targetLi = this.closest('li')
-        if (!targetLi) return
-
-        const fileName = targetLi.dataset.file || '' // fileName이 빈 값일 때 처리
-        if (!fileName) {
-          console.error('File name is undefined.')
-          return
-        }
-
+        const fileName = targetLi.dataset.file
+        console.log(fileName)
         fetch(removeUrl + fileName, {
           method: 'POST',
+          dataType: 'json',
+          fileName: fileName,
           headers: {
             Authorization: `Bearer ${token}`
           }
         })
           .then(response => response.json())
           .then(json => {
+            console.log(json)
             if (json === true) targetLi.remove()
-            const customLabel = document.querySelector('#custom-label')
-            const fileInput = document.querySelector('#fileInput')
-            if (customLabel) customLabel.innerHTML = ''
-            if (fileInput) fileInput.value = ''
+            document.querySelector('#custom-label').innerHTML = ''
+            document.querySelector('#fileInput').value = ''
           })
           .catch(err => console.log('Error occurred: ', err))
       }
@@ -335,19 +318,19 @@ export default function Register() {
           />
         </div>
 
-        {/* 모집 인원 */}
         <div className="form-group">
           <label htmlFor="maxpeople" style={{fontSize: '22px'}}>
             모집 인원
           </label>
           <input
-            type="text"
+            type="number"
             name="maxpeople"
             ref={refMaxPeople}
             style={{fontSize: '22px'}}
             id="maxpeople"
             className="form-control"
             placeholder="모집 인원을 입력하세요"
+            min="1" // 최소 1 이상의 값만 입력 가능
           />
         </div>
 
@@ -357,13 +340,14 @@ export default function Register() {
             가격
           </label>
           <input
-            type="text"
+            type="number"
             name="price"
             ref={refPrice}
             style={{fontSize: '22px'}}
             id="price"
             className="form-control"
             placeholder="가격을 입력하세요"
+            min="1" // 최소 1 이상의 값만 입력 가능
           />
         </div>
 

@@ -14,7 +14,7 @@ interface BoardsDTO {
 }
 
 interface Review {
-  reviewsNum: number // 댓글 번호
+  reviewsnum: number // 댓글 번호
   body: string | null // 댓글 내용
   email: string // 댓글 작성자 이메일
   regDate: string // 댓글 등록 날짜
@@ -146,8 +146,8 @@ export default function StyledRead() {
   }
 
   // 댓글 삭제 함수
-  const deleteReview = (reviewNum: number) => {
-    fetch(`http://localhost:8080/api/reviews/remove/${reviewNum}`, {
+  const deleteReview = (reviewsnum: number) => {
+    fetch(`http://localhost:8080/api/reviews/remove/${reviewsnum}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
@@ -162,7 +162,7 @@ export default function StyledRead() {
       .then(() => {
         setReviews(prevReviews =>
           prevReviews.map(review =>
-            review.reviewsNum === reviewNum
+            review.reviewsnum === reviewsnum
               ? {...review, body: '삭제된 댓글입니다.'}
               : review
           )
@@ -247,13 +247,13 @@ export default function StyledRead() {
         <h4>댓글 목록</h4>
         <ul className="review-list">
           {reviews
-            .sort((a, b) => b.reviewsNum - a.reviewsNum) // 댓글 번호 기준 내림차순 정렬
+            .sort((a, b) => b.reviewsnum - a.reviewsnum) // 댓글 번호 기준 내림차순 정렬
             .map(review => (
-              <li key={review.reviewsNum}>
+              <li key={review.reviewsnum}>
                 <strong>{review.email}</strong>: {review.body ?? '삭제된 댓글입니다.'}{' '}
                 {review.email === email && review.body !== '삭제된 댓글입니다.' && (
                   <button
-                    onClick={() => deleteReview(review.reviewsNum)}
+                    onClick={() => deleteReview(review.reviewsnum)}
                     className="btn btn-danger btn-sm">
                     삭제
                   </button>
