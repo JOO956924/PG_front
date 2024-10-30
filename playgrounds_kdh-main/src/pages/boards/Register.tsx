@@ -1,11 +1,12 @@
-import {FormEvent, useCallback, useRef, useState} from 'react'
+import {FormEvent, useCallback, useRef, useState, useEffect} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
+import './BoardStyles.css'
 
 interface PhotosDTO {
-  uuid: string | Blob
-  photosName: string | Blob
-  path: string | Blob
+  uuid: string
+  photosName: string
+  path: string
 }
 
 export default function Register() {
@@ -16,17 +17,21 @@ export default function Register() {
   const refTitle = useRef<HTMLInputElement | null>(null)
   const refBody = useRef<HTMLTextAreaElement | null>(null)
   const refFile = useRef<HTMLInputElement | null>(null)
-  const [labelFile, setLabelFile] = useState('')
+  const [labelFile, setLabelFile] = useState<string>('')
+  const [uploadedPhotos, setUploadedPhotos] = useState<PhotosDTO[]>([])
+
+  // 세션 스토리지에서 이메일 가져오기
+  const email = sessionStorage.getItem('email') || ''
 
   const checkExtension = useCallback((fileName: string, fileSize: number) => {
-    const maxSize = 1024 * 1024 * 10
+    const maxSize = 1024 * 1024 * 10 // 10MB
     if (fileSize >= maxSize) {
-      alert('파일사이즈 초과')
+      alert('파일 사이즈 초과')
       return false
     }
     const regex = new RegExp('(.*?).(jpg|jpeg|png|gif|bmp|pdf)$', 'i')
     if (!regex.test(fileName)) {
-      alert('해당파일 업로드 금지!')
+      alert('해당 파일 업로드 금지!')
       return false
     }
     return true
@@ -36,16 +41,15 @@ export default function Register() {
     const formData = new FormData()
     const fileName = refFile.current?.value.split('\\').pop()
     const flist = refFile.current?.files ?? []
-    const flistLength = flist?.length ?? 0
+    const flistLength = flist.length
 
-    const tmpLabel =
-      (flist?.length ?? 0) - 1 === 0 ? '' : `${fileName} 외 ${(flist?.length ?? 0) - 1}개`
+    const tmpLabel = flistLength === 0 ? '' : `${fileName} 외 ${flistLength - 1}개`
     setLabelFile(tmpLabel)
 
     let appended = false
     for (let i = 0; i < flistLength; i++) {
       if (!checkExtension(flist[i].name, flist[i].size)) {
-        if (refFile?.current?.value !== undefined) refFile.current.value = ''
+        refFile.current!.value = ''
         appended = false
         break
       }
@@ -54,8 +58,7 @@ export default function Register() {
     }
     if (!appended) return
 
-    const url = 'http://localhost:8080/api/uploadAjax'
-    fetch(url, {
+    fetch('http://localhost:8080/api/uploadAjax', {
       method: 'POST',
       body: formData,
       headers: {
@@ -63,10 +66,7 @@ export default function Register() {
       }
     })
       .then(res => res.json())
-      .then(json => {
-        console.log(json)
-        showResult(json)
-      })
+      .then(showResult)
       .catch(err => console.log('Error: ', err))
   }, [token])
 
@@ -128,56 +128,35 @@ export default function Register() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    let page = query.get('page') || '1'
-    let type = query.get('type') || ''
-    let keyword = query.get('keyword') || ''
-
-    const formData = new FormData(e.currentTarget)
-    if (refTitle.current?.value === '' || refTitle.current?.value == null) {
-      refTitle.current?.focus()
-      return
-    }
-
-    const liArr = document.querySelectorAll('.uploadResult ul li')
-    let arr: PhotosDTO[] = []
-    for (let i = 0; i < liArr.length; i++) {
-      arr.push({
-        photosName: liArr[i].dataset.name,
-        path: liArr[i].dataset.path,
-        uuid: liArr[i].dataset.uuid
-      })
-    }
-
-    arr.forEach((photo, index) => {
-      formData.append(`photosDTOList[${index}].uuid`, photo.uuid)
-      formData.append(`photosDTOList[${index}].photosName`, photo.photosName)
-      formData.append(`photosDTOList[${index}].path`, photo.path)
-    })
+    const page = query.get('page') || '1'
+    const type = query.get('type') || ''
+    const keyword = query.get('keyword') || ''
 
     const formDataObj = {
       title: refTitle.current?.value ?? '',
       body: refBody.current?.value ?? '',
-      photosDTOList: arr
+      email: email, // 세션 스토리지에서 가져온 이메일 사용
+      photosDTOList: uploadedPhotos
     }
 
-    if (token) {
-      fetch('http://localhost:8080/api/boards/register', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(formDataObj)
-      })
-        .then(res => res.text())
-        .then(data => {
-          console.log(data)
-          navigate(
-            `/boards/list?page=${page}&type=${type}&keyword=${keyword}&msg=${data}`
-          )
-        })
-        .catch(err => console.log('Error: ' + err))
+    if (!refTitle.current?.value) {
+      refTitle.current?.focus()
+      return
     }
+
+    fetch('http://localhost:8080/api/boards/register', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify(formDataObj)
+    })
+      .then(res => res.text())
+      .then(data => {
+        navigate(`/boards/list?page=${page}&type=${type}&keyword=${keyword}&msg=${data}`)
+      })
+      .catch(err => console.log('Error: ' + err))
   }
 
   const handleGoBack = () => {
@@ -187,90 +166,76 @@ export default function Register() {
   }
 
   return (
-    <>
-      <div style={{padding: '0 15%', overflowY: 'auto', maxHeight: '80vh'}}>
-        <button
-          onClick={handleGoBack}
-          style={{
-            fontSize: '22px',
-            marginBottom: '10px',
-            backgroundColor: '#007bff', // 버튼 색상 설정
-            color: '#fff',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '5px'
-          }}>
-          뒤로가기
-        </button>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title" style={{fontSize: '22px'}}>
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              ref={refTitle}
-              style={{fontSize: '22px'}}
-              id="title"
-              className="form-control"
-              placeholder="타이틀을 입력하세요"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="body" style={{fontSize: '22px'}}>
-              Body
-            </label>
-            <textarea
-              name="body"
-              ref={refBody}
-              style={{fontSize: '22px', width: '100%', height: '150px'}}
-              id="body"
-              className="form-control"
-              placeholder="본문 내용을 입력하세요"
-            />
-          </div>
-          <div className="form-group">
-            <button
-              type="button"
-              style={{
-                fontSize: '22px',
-                backgroundColor: '#007bff', // 버튼 색상 설정
-                color: '#fff',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                marginRight: '10px' // 간격을 주기 위해 추가
-              }}
-              onClick={() => refFile.current?.click()}>
-              Select Image Files
-            </button>
-            <input
-              type="file"
-              ref={refFile}
-              style={{display: 'none'}}
-              multiple
-              onChange={fileChange}
-              id="fileInput"
-            />
-            <button
-              type="submit"
-              style={{
-                fontSize: '22px',
-                backgroundColor: '#007bff', // 버튼 색상 설정
-                color: '#fff',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '5px'
-              }}>
-              Submit
-            </button>
-          </div>
-          <div className="uploadResult">
-            <ul></ul>
-          </div>
-        </form>
-      </div>
-    </>
+    <div className="register-container">
+      <button className="btn btn-secondary" onClick={handleGoBack}>
+        뒤로가기
+      </button>
+      <form onSubmit={handleSubmit} className="register-form">
+        <div className="form-group">
+          <label htmlFor="email" className="form-label">
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={email} // 세션 스토리지에서 가져온 이메일 고정
+            className="form-control"
+            id="email"
+            placeholder="이메일을 입력하세요"
+            readOnly // 수정 불가로 설정
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="title" className="form-label">
+            Title
+          </label>
+          <input
+            type="text"
+            name="title"
+            ref={refTitle}
+            className="form-control"
+            id="title"
+            placeholder="타이틀을 입력하세요"
+            required // 필수 입력으로 설정
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="body" className="form-label">
+            Body
+          </label>
+          <textarea
+            name="body"
+            ref={refBody}
+            className="form-control content-textarea"
+            id="body"
+            placeholder="본문 내용을 입력하세요"
+            required // 필수 입력으로 설정
+          />
+        </div>
+        <div className="form-group">
+          <button
+            type="button"
+            className="file-select-button btn btn-primary"
+            onClick={() => refFile.current?.click()}>
+            사진 추가
+          </button>
+          <input
+            type="file"
+            ref={refFile}
+            className="file-input"
+            multiple
+            onChange={fileChange}
+            id="fileInput"
+            style={{display: 'none'}} // 숨김 처리
+          />
+          <button type="submit" className="btn btn-success">
+            게시글 등록
+          </button>
+        </div>
+        <div className="uploadResult">
+          <ul></ul>
+        </div>
+      </form>
+    </div>
   )
 }

@@ -147,14 +147,17 @@ export default function List() {
               name="type"
               value={types}
               onChange={e => {
-                setTypes(e.target.value)
-                if (e.target.value === '') {
-                  setKeywords('')
-                  setInverted(true)
-                  navigate(`/`)
+                const selectedValue = e.target.value
+                setTypes(selectedValue)
+                if (selectedValue === '') {
+                  // "선택하세요"가 선택된 경우
+                  setKeywords('') // 키워드 초기화
+                  setInverted(true) // inverted 상태를 true로 설정
+                  // 추가적인 동작을 하지 않음
                 } else {
+                  // 다른 옵션이 선택된 경우
                   setInverted(false)
-                  refKeyword.current?.focus()
+                  refKeyword.current?.focus() // 키워드 입력란에 포커스
                 }
               }}>
               {options.map((item, idx) => (
