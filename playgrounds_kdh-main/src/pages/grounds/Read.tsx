@@ -217,6 +217,10 @@ export default function Read() {
               body: JSON.stringify({email, addcash: -groundsPrice})
             })
           })
+          .then(() => {
+            // charge가 성공한 후 즐겨찾기 추가
+            handleFavorite()
+          })
           .catch(err => console.log('Error:', err))
       })
       .catch(err => console.log('Error:', err))
@@ -250,11 +254,7 @@ export default function Read() {
             Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({email, gno})
-        })
-          .then(() => {
-            alert('즐겨찾기에 추가되었습니다.')
-          })
-          .catch(err => console.log('Error:', err))
+        }).catch(err => console.log('Error:', err))
       })
       .catch(err => console.log('Error:', err))
   }
@@ -283,6 +283,24 @@ export default function Read() {
 
       setGroundsReviewsDTO(prev => prev?.filter(review => review.grno !== grno) || null)
       alert('예약이 성공적으로 취소되었습니다.')
+      if (email) {
+        const removeLikeResponse = await fetch(
+          `http://localhost:8080/api/members/removeLike`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({email, gno})
+          }
+        )
+
+        if (removeLikeResponse.ok) {
+        } else {
+          alert('즐겨찾기 제거에 실패했습니다.')
+        }
+      }
     } catch (error) {
       console.error('예약 취소 실패:', error)
     }
@@ -329,7 +347,10 @@ export default function Read() {
 
       <div className="card">
         <div className="card-header">
-          <button className="favorite-button" onClick={handleFavorite}>
+          <button
+            className="favorite-button"
+            style={{display: 'none'}}
+            onClick={handleFavorite}>
             즐겨찾기
           </button>
         </div>
