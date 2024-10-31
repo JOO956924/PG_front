@@ -3,32 +3,32 @@ import {useNavigate, useSearchParams} from 'react-router-dom'
 import './BoardStyles.css'
 
 interface BoardsDTO {
-  bno: number // 게시글 번호
-  title: string // 게시글 제목
-  body: string // 본문 내용
-  likes: number // 좋아요 수
-  regDate: string // 등록 날짜
-  bphotosDTOList: {path: string; thumbnailURL: string}[] // 이미지 목록
-  email: string // 작성자 이메일
-  reviews: Review[] // 댓글 목록 추가
+  bno: number
+  mid: number
+  title: string
+  body: string
+  likes: number
+  regDate: string
+  bphotosDTOList: {path: string; thumbnailURL: string}[]
+  email: string
 }
 
-interface Review {
-  reviewsnum: number // 댓글 번호
-  body: string | null // 댓글 내용
-  email: string // 댓글 작성자 이메일
-  regDate: string // 댓글 등록 날짜
+interface ReviewDTO {
+  reviewId: number
+  memberId: number
+  body: string
+  regDate: string
 }
 
-export default function StyledRead() {
-  const email = sessionStorage.getItem('email')?.trim() || '' // 세션 스토리지에서 이메일 가져오기
+export default function Read() {
+  const email = sessionStorage.getItem('email')?.trim() || ''
   const navigate = useNavigate()
   const [query] = useSearchParams()
   const [boardsDTO, setBoardsDTO] = useState<BoardsDTO | null>(null)
-  const [reviews, setReviews] = useState<Review[]>([]) // 댓글 상태
-  const [newReview, setNewReview] = useState<string>('') // 새로운 댓글 상태
+  const [error, setError] = useState<string>('')
+  const [reviews, setReviews] = useState<ReviewDTO[]>([])
+  const [newReview, setNewReview] = useState<string>('')
 
-  // URL에서 bno, page, type, keyword 추출
   const bno = Number(query.get('bno'))
   const page = query.get('page') || '1'
   const type = query.get('type') || ''
@@ -37,11 +37,10 @@ export default function StyledRead() {
   useEffect(() => {
     if (bno) {
       console.log(`게시글 읽기 API 호출: bno=${bno}`)
-      // 게시글 읽기 API 호출
       fetch(`http://localhost:8080/api/boards/read/${bno}`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem('token') || ''}` // 토큰 인증
+          Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
         }
       })
         .then(res => {
@@ -53,43 +52,66 @@ export default function StyledRead() {
         })
         .then(data => {
           console.log('게시글 읽기 API에서 받은 데이터:', data)
-          setBoardsDTO(data.boardsDTO) // 데이터 설정
-          setReviews(data.boardsDTO.reviews || []) // 댓글 설정
+          setBoardsDTO(data.boardsDTO)
+
+          // JWT에서 mid 추출하여 세션 스토리지에 저장
+          const token = sessionStorage.getItem('token')
+          if (token) {
+            const claims = parseJwt(token) // parseJwt 함수 사용
+            sessionStorage.setItem('memberId', claims.mid) // mid 저장
+          }
         })
-        .catch(err => console.log('오류 발생:', err))
+        .catch(err => {
+          console.log('오류 발생:', err)
+          setError('게시글을 불러오는 데 실패했습니다.')
+        })
+
+      fetch(`http://localhost:8080/api/reviews/list?bno=${bno}`)
+        .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then(data => setReviews(data.reviews))
+        .catch(() => setError('댓글을 불러오는 데 실패했습니다.'))
     } else {
       console.warn('게시글 번호가 유효하지 않습니다.')
     }
   }, [bno])
 
-  // 데이터가 로드 중일 때 로딩 표시
-  if (!boardsDTO) {
-    return <div className="loading">로딩 중..</div>
+  const parseJwt = (token: string) => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error('JWT 파싱 실패:', error)
+      return {}
+    }
   }
 
-  // 목록으로 돌아가는 함수
   const goBack = () => {
     console.log('목록으로 돌아갑니다.')
     navigate(`/boards/list?page=${page}&type=${type}&keyword=${keyword}`)
   }
 
-  // 게시글 수정 함수
   const goModify = () => {
-    console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO.bno}`)
-    navigate(`/boards/modify/${boardsDTO.bno}`)
+    console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO?.bno}`)
+    navigate(`/boards/modify/${boardsDTO?.bno}`)
   }
 
-  // 게시글 삭제 함수
   const goDelete = () => {
     if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-      console.log(`게시글 삭제 API 호출: bno=${boardsDTO.bno}`)
-      fetch(`http://localhost:8080/api/boards/remove/${boardsDTO.bno}`, {
+      console.log(`게시글 삭제 API 호출: bno=${boardsDTO?.bno}`)
+      fetch(`http://localhost:8080/api/boards/remove/${boardsDTO?.bno}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionStorage.getItem('token') || ''}` // 토큰 인증
+          Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
         },
-        body: JSON.stringify({page, type, keyword}) // 추가 파라미터 전송
+        body: JSON.stringify({page, type, keyword})
       })
         .then(res => {
           console.log(`삭제 API 응답 상태: ${res.status}`)
@@ -100,7 +122,7 @@ export default function StyledRead() {
         })
         .then(() => {
           alert('게시글이 삭제되었습니다.')
-          navigate(`/boards/list?page=${page}&type=${type}&keyword=${keyword}`) // 삭제 후 목록으로 이동
+          navigate(`/boards/list?page=${page}&type=${type}&keyword=${keyword}`)
         })
         .catch(err => console.log('오류 발생:', err))
     } else {
@@ -108,67 +130,36 @@ export default function StyledRead() {
     }
   }
 
-  // 리뷰 제출 함수
-  const handleReviewSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (newReview.trim()) {
-      const reviewData = {
-        body: newReview, // 댓글 내용
-        bno: boardsDTO.bno, // 게시글 번호
-        email: email // 세션 스토리지에서 사용자 ID 가져오기
-      }
-      console.log(`댓글 제출: ${JSON.stringify(reviewData)}`)
-      fetch(`http://localhost:8080/api/reviews/${boardsDTO.bno}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionStorage.getItem('token') || ''}` // 토큰 인증
-        },
-        body: JSON.stringify(reviewData)
-      })
-        .then(res => {
-          console.log(`댓글 제출 API 응답 상태: ${res.status}`)
-          if (!res.ok) {
-            throw new Error(`HTTP 에러! 상태: ${res.status}`)
-          }
-          return res.json()
-        })
-        .then(data => {
-          console.log('댓글이 추가되었습니다:', data)
-          setReviews(prevReviews => [data, ...prevReviews]) // 댓글 추가 (최신 댓글을 앞에)
-          setNewReview('') // 입력 필드 비우기
-        })
-        .catch(err => console.log('오류 발생:', err))
-    } else {
-      alert('댓글 내용을 입력해 주세요.')
-      console.warn('댓글 내용이 비어 있습니다.')
+  const addReview = () => {
+    const memberId = Number(sessionStorage.getItem('memberId'))
+    if (!newReview.trim() || !memberId) {
+      console.log('회원 정보 또는 댓글 내용이 누락되었습니다.')
+      return
     }
+
+    console.log(`댓글 추가 API 호출: memberId=${memberId}, boardId=${bno}`)
+    fetch(`http://localhost:8080/api/reviews/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({memberId, boardId: bno, body: newReview})
+    })
+      .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then(newReviewData => {
+        console.log('댓글 추가 성공:', newReviewData)
+        setReviews([newReviewData, ...reviews])
+        setNewReview('')
+      })
+      .catch(error => {
+        console.error('댓글 추가 실패:', error)
+        setError('댓글 추가에 실패했습니다.')
+      })
   }
 
-  // 댓글 삭제 함수
-  const deleteReview = (reviewsnum: number) => {
-    fetch(`http://localhost:8080/api/reviews/remove/${reviewsnum}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
-      }
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('댓글 삭제 실패')
-        }
-        return res.json()
-      })
-      .then(() => {
-        setReviews(prevReviews =>
-          prevReviews.map(review =>
-            review.reviewsnum === reviewsnum
-              ? {...review, body: '삭제된 댓글입니다.'}
-              : review
-          )
-        )
-      })
-      .catch(err => console.error('댓글 삭제 오류:', err))
+  if (!boardsDTO) {
+    return <div className="loading">로딩 중..</div>
   }
 
   return (
@@ -176,7 +167,6 @@ export default function StyledRead() {
       <button className="btn btn-outline-primary" onClick={goBack}>
         뒤로가기
       </button>
-
       <div className="read-content">
         <h2 className="read-title">제목: {boardsDTO.title}</h2>
         <p className="read-author">글쓴이: {boardsDTO.email}</p>
@@ -212,54 +202,44 @@ export default function StyledRead() {
             }).format(new Date(boardsDTO.regDate))}
           </p>
         </div>
+
+        <div className="button-container">
+          {boardsDTO.email === email && (
+            <>
+              <button className="btn btn-warning" onClick={goModify}>
+                수정하기
+              </button>
+              <button className="btn btn-danger" onClick={goDelete}>
+                삭제하기
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="button-container">
-        {boardsDTO.email === email ? ( // 작성자 이메일과 현재 이메일이 일치할 경우
-          <>
-            <button className="btn btn-outline-secondary" onClick={goModify}>
-              수정하기
-            </button>
-            <button className="btn btn-outline-danger" onClick={goDelete}>
-              삭제하기
-            </button>
-          </>
-        ) : (
-          <p>수정하거나 삭제할 수 없습니다.</p>
-        )}
-      </div>
-
-      {/* 리뷰 입력 및 목록 */}
+      {/* 댓글 입력 및 목록 표시 */}
       <div className="review-section">
-        <h3>댓글 달기</h3>
-        <form onSubmit={handleReviewSubmit}>
-          <textarea
-            value={newReview}
-            onChange={e => setNewReview(e.target.value)}
-            placeholder="댓글을 입력하세요."
-            className="form-control"
-            required
-          />
-          <button type="submit" className="btn btn-primary">
-            댓글 달기
-          </button>
-        </form>
-        <h4>댓글 목록</h4>
+        <h3>댓글</h3>
+        <input
+          type="text"
+          className="review-input"
+          placeholder="댓글을 입력하세요"
+          value={newReview}
+          onChange={e => setNewReview(e.target.value)}
+        />
+        <button className="btn btn-primary" onClick={addReview}>
+          댓글 추가
+        </button>
+
         <ul className="review-list">
-          {reviews
-            .sort((a, b) => b.reviewsnum - a.reviewsnum) // 댓글 번호 기준 내림차순 정렬
-            .map(review => (
-              <li key={review.reviewsnum}>
-                <strong>{review.email}</strong>: {review.body ?? '삭제된 댓글입니다.'}{' '}
-                {review.email === email && review.body !== '삭제된 댓글입니다.' && (
-                  <button
-                    onClick={() => deleteReview(review.reviewsnum)}
-                    className="btn btn-danger btn-sm">
-                    삭제
-                  </button>
-                )}
-              </li>
-            ))}
+          {reviews.map(review => (
+            <li key={review.reviewId} className="review-item">
+              <p>
+                <strong>{review.memberId}</strong>: {review.body}
+              </p>
+              <p>{new Date(review.regDate).toLocaleString()}</p>
+            </li>
+          ))}
         </ul>
       </div>
     </div>

@@ -28,9 +28,9 @@ interface GroundsDTO {
 }
 
 interface GphotosDTO {
-  uuid: string | Blob
-  gphotosName: string | Blob
-  path: string | Blob
+  uuid: string
+  gphotosName: string
+  path: string
 }
 
 interface PageRequestDTO {
@@ -83,6 +83,11 @@ export default function Read() {
   )
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
+  }
+  const formatImageUrl = (photo: GphotosDTO): string => {
+    return `http://localhost:8080/api/display?fileName=${encodeURI(
+      `${photo.path}/${photo.uuid}_${photo.gphotosName}`
+    )}`
   }
 
   const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
@@ -326,24 +331,26 @@ export default function Read() {
         수정
       </button>
 
-      <div className="carousel-container">
-        <Slider {...sliderSettings}>
-          {groundsDTO.gphotosDTOList.map((photo, idx) => (
-            <div key={idx} className="carousel-slide">
-              <img
-                src={
-                  photo.path
-                    ? `http://localhost:8080/api/display?fileName=${photo.path}`
-                    : defaultImg
-                }
-                alt={`슬라이드 이미지 ${idx + 1}`}
-                className="carousel-image"
-                onError={addDefaultImg}
-              />
-            </div>
-          ))}
-        </Slider>
-      </div>
+      {groundsDTO && groundsDTO.gphotosDTOList.length > 0 ? (
+        <div className="slider-container">
+          <Slider {...sliderSettings}>
+            {groundsDTO.gphotosDTOList.map((photo, index) => (
+              <div key={index}>
+                <img
+                  src={formatImageUrl(photo)}
+                  alt="Ground Image"
+                  className="ground-image"
+                  onError={addDefaultImg}
+                />
+              </div>
+            ))}
+          </Slider>
+        </div>
+      ) : (
+        <div className="image-container">
+          <img src={defaultImg} alt="Default Image" className="ground-image" />
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header">
