@@ -250,7 +250,10 @@ export default function List() {
           ))}
       </div>
 
-      <ul className="pagination">
+      <ul
+        className={`pagination ${
+          pageResultDTO && pageResultDTO.pageList.length > 1 ? '' : 'hidden'
+        }`}>
         {pageResultDTO?.prev && (
           <li className="page-item">
             <a

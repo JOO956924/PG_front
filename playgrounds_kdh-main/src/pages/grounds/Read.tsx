@@ -61,6 +61,15 @@ interface GroundsReviewsDTO {
   modDate: string
 }
 
+interface MembersDTO {
+  mid: number
+  email: string
+  likes: string
+  nowcash: number
+  addcash: number
+  name: string
+}
+
 export default function Read() {
   const [searchParams] = useSearchParams()
   const gno = searchParams.get('gno')
@@ -106,12 +115,7 @@ export default function Read() {
           Authorization: `Bearer ${token}`
         }
       })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`)
-          }
-          return res.json()
-        })
+        .then(res => res.json())
         .then(data => {
           setGroundsDTO(data.groundsDTO)
         })
@@ -127,12 +131,7 @@ export default function Read() {
           Authorization: `Bearer ${token}`
         }
       })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`)
-          }
-          return res.json()
-        })
+        .then(res => res.json())
         .then(data => {
           setGroundsReviewsDTO(data)
         })
@@ -155,7 +154,6 @@ export default function Read() {
       return
     }
 
-    // 예약 날짜와 시간이 현재 날짜와 시간보다 이전인지 확인
     const reservationDateTime = new Date(
       `${groundsDTO.day.toString().substring(0, 4)}-${groundsDTO.day
         .toString()
@@ -169,36 +167,27 @@ export default function Read() {
       return
     }
 
-    // 동일한 사람의 중복 예약 확인
     if (groundsReviewsDTO && groundsReviewsDTO.some(review => review.email === email)) {
       alert('이미 예약이 존재합니다.')
       return
     }
 
-    // 회원 정보를 가져와 nowcash 확인
     fetch(`http://localhost:8080/api/members/email/${email}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-        return res.json()
-      })
+      .then(res => res.json())
       .then(memberData => {
-        const groundsPrice = groundsDTO.price // 경기장 가격
-        const nowCash = memberData.nowcash // 회원의 현재 캐쉬
+        const groundsPrice = groundsDTO.price
+        const nowCash = memberData.nowcash
 
-        // nowcash가 가격보다 부족한 경우
         if (nowCash < groundsPrice) {
           alert('캐쉬가 부족합니다. 충전해 주세요.')
-          return // 예약 등록 중지
+          return
         }
 
-        // 이제 예약 등록 진행
         const reviewData = {
           gno: Number(gno),
           mid: memberData.mid,
@@ -214,16 +203,11 @@ export default function Read() {
           },
           body: JSON.stringify(reviewData)
         })
-          .then(res => {
-            if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status}`)
-            }
-            return res.json()
-          })
+          .then(res => res.json())
           .then(data => {
             alert('예약이 성공적으로 등록되었습니다.')
             setGroundsReviewsDTO(prev => [...(prev || []), data])
-            // nowcash에서 가격 차감 로직 추가
+
             return fetch(`http://localhost:8080/api/members/charge`, {
               method: 'POST',
               headers: {
@@ -238,9 +222,45 @@ export default function Read() {
       .catch(err => console.log('Error:', err))
   }
 
+  const handleFavorite = () => {
+    const email = sessionStorage.getItem('email')
+    if (!email) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
+    fetch(`http://localhost:8080/api/members/email/${email}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(memberData => {
+        if (memberData.likes && memberData.likes.includes(groundsDTO.gtitle)) {
+          alert('이미 즐겨찾기에 추가된 구장입니다.')
+          return
+        }
+
+        // 중복이 없을 경우에만 즐겨찾기 추가 요청
+        fetch(`http://localhost:8080/api/members/updateLikes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({email, gno})
+        })
+          .then(() => {
+            alert('즐겨찾기에 추가되었습니다.')
+          })
+          .catch(err => console.log('Error:', err))
+      })
+      .catch(err => console.log('Error:', err))
+  }
+
   const handleDelete = async (grno: number) => {
     try {
-      // 리뷰 삭제 요청
       await fetch(`http://localhost:8080/api/greviews/${groundsDTO.gno}/${grno}`, {
         method: 'DELETE',
         headers: {
@@ -248,10 +268,9 @@ export default function Read() {
         }
       })
 
-      // 리뷰 삭제 성공 시, nowcash 업데이트 요청
       const email = sessionStorage.getItem('email')
       if (email) {
-        const groundsPrice = groundsDTO.price // 경기장 가격
+        const groundsPrice = groundsDTO.price
         await fetch(`http://localhost:8080/api/members/charge`, {
           method: 'POST',
           headers: {
@@ -262,7 +281,6 @@ export default function Read() {
         })
       }
 
-      // 상태 업데이트 및 알림
       setGroundsReviewsDTO(prev => prev?.filter(review => review.grno !== grno) || null)
       alert('예약이 성공적으로 취소되었습니다.')
     } catch (error) {
@@ -311,15 +329,14 @@ export default function Read() {
 
       <div className="card">
         <div className="card-header">
-          {/* <div className="ground-title">{groundsDTO.gtitle}</div> */}
-          <button className="favorite-button">즐겨찾기</button>
+          <button className="favorite-button" onClick={handleFavorite}>
+            즐겨찾기
+          </button>
         </div>
         <div className="card-body">
           <div className="ground-details">
             <div>
               <h1>{groundsDTO.gtitle}</h1>
-              {/* <p>게시물 등록: {new Date(groundsDTO.regDate).toLocaleString()}</p> */}
-              {/* <p>게시물 수정: {new Date(groundsDTO.modDate).toLocaleString()}</p> */}
               <p>장소: {groundsDTO.location}</p>
               <p>종목: {groundsDTO.sports}</p>
               <p>경기 날짜: {formatDate(groundsDTO.day)}</p>
@@ -332,7 +349,6 @@ export default function Read() {
           <div>
             <p>{groundsDTO.info}</p>
           </div>
-          {/* <div className="reservation-input">예약 일정 입력</div> */}
         </div>
         <button
           className="favorite-button reservation-button"

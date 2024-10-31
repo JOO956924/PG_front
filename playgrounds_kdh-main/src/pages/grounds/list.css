@@ -93,3 +93,7 @@
   background: #0056b3; /* 버튼 배경색 변경 */
   color: #fff; /* 텍스트 색상 변경 */
 }
+
+.hidden {
+  display: none;
+}
