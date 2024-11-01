@@ -1,5 +1,6 @@
 import {SyntheticEvent, useEffect, useState} from 'react'
 import {useNavigate, useSearchParams, useLocation} from 'react-router-dom'
+import {useReservationContext} from '../../contexts/ReservationContext'
 import useToken from '../../hooks/useToken'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
@@ -11,7 +12,6 @@ interface GroundsDTO {
   gphotosDTOList: GphotosDTO[]
   gno: number
   day: number
-  reviewsCnt: number
   gtitle: string
   location: string
   sports: string
@@ -22,7 +22,7 @@ interface GroundsDTO {
   info: string
   price: number
   maxpeople: number
-  nowpeople: number
+  // nowpeople: number
   regDate: string
   modDate: string
 }
@@ -81,9 +81,13 @@ export default function Read() {
   const [groundsReviewsDTO, setGroundsReviewsDTO] = useState<GroundsReviewsDTO[] | null>(
     null
   )
+  const {setReservationCounts} = useReservationContext()
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
   }
+  const isFullyBooked =
+    groundsReviewsDTO && groundsReviewsDTO.length >= (groundsDTO?.maxpeople || 0)
+
   const formatImageUrl = (photo: GphotosDTO): string => {
     return `http://localhost:8080/api/display?fileName=${encodeURI(
       `${photo.path}/${photo.uuid}_${photo.gphotosName}`
@@ -139,10 +143,14 @@ export default function Read() {
         .then(res => res.json())
         .then(data => {
           setGroundsReviewsDTO(data)
+          setReservationCounts(prev => ({
+            ...prev,
+            [gno]: data.length // 전역 상태에 예약 인원 업데이트 // 수정됨
+          }))
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [gno, token])
+  }, [gno, token, setReservationCounts]) // 수정됨
 
   const goModify = (gno: number) => {
     navigate(
@@ -153,6 +161,10 @@ export default function Read() {
   }
 
   const handleReservation = () => {
+    if (isFullyBooked) {
+      alert('예약이 만석입니다.')
+      return
+    }
     const email = sessionStorage.getItem('email')
     if (!email || !gno) {
       alert('로그인이 필요합니다.')
@@ -383,6 +395,8 @@ export default function Read() {
               <p>경기 날짜: {formatDate(groundsDTO.day)}</p>
               <p>경기 시간: {groundsDTO.groundstime}</p>
               <p>모집 인원: {groundsDTO.maxpeople} 명</p>
+              <p>예약 인원: {groundsReviewsDTO ? groundsReviewsDTO.length : 0} 명</p>{' '}
+              {/* 예약 인원 계산 */}
               <p>요금: {groundsDTO.price.toLocaleString()} 원</p>
             </div>
           </div>
@@ -391,11 +405,11 @@ export default function Read() {
             <p>{groundsDTO.info}</p>
           </div>
         </div>
-        <button
-          className="favorite-button reservation-button"
-          onClick={handleReservation}>
-          예약 등록
-        </button>
+        {!isFullyBooked && (
+          <button className="reservation-button" onClick={handleReservation}>
+            예약 등록
+          </button>
+        )}
       </div>
 
       <div className="card">

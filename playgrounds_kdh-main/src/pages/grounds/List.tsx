@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState, FormEvent} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
+import {useReservationContext} from '../../contexts/ReservationContext'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
@@ -61,6 +62,7 @@ export default function List() {
   const [query, setQuery] = useSearchParams()
   const refType = useRef<HTMLSelectElement | null>(null)
   const refKeyword = useRef<HTMLInputElement | null>(null)
+  const {reservationCounts} = useReservationContext() // 추가됨
 
   const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
     page: '',
@@ -243,6 +245,8 @@ export default function List() {
                   <span className="game-info">구장명: {ground.gtitle}</span>
                   <span className="sports-info">종목: {ground.sports}</span>
                   <span className="location-info">위치: {ground.location}</span>
+                  <span>예약 인원: {reservationCounts[ground.gno] || 0} 명</span>{' '}
+                  {/* 수정됨 */}
                 </div>
                 <div className="card-button">
                   <span className="people-info">모집 인원: {ground.maxpeople}</span>
