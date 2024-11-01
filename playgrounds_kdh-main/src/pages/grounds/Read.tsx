@@ -21,7 +21,6 @@ interface GroundsDTO {
   info: string
   price: number
   maxpeople: number
-  // nowpeople: number
   regDate: string
   modDate: string
 }
@@ -80,6 +79,7 @@ export default function Read() {
   const [groundsReviewsDTO, setGroundsReviewsDTO] = useState<GroundsReviewsDTO[] | null>(
     null
   )
+  const [isModifyHidden, setIsModifyHidden] = useState(false) // 수정 버튼 숨김 여부 상태
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
   }
@@ -145,6 +145,30 @@ export default function Read() {
         .catch(err => console.log('Error:', err))
     }
   }, [gno, token])
+
+  useEffect(() => {
+    if (token) {
+      fetchUserRoles()
+    }
+  }, [token])
+
+  // 사용자 권한 정보를 가져와 수정 버튼의 가시성을 설정하는 함수
+  const fetchUserRoles = () => {
+    const email = sessionStorage.getItem('email')
+    if (!email) return
+
+    fetch(`http://localhost:8080/api/members/user/roles?email=${email}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsModifyHidden(data.includes(0))
+      })
+      .catch(err => console.log('Error fetching user roles:', err))
+  }
 
   const goModify = (gno: number) => {
     navigate(
@@ -229,7 +253,6 @@ export default function Read() {
             })
           })
           .then(() => {
-            // charge가 성공한 후 즐겨찾기 추가
             handleFavorite()
           })
           .catch(err => console.log('Error:', err))
@@ -257,7 +280,6 @@ export default function Read() {
           return
         }
 
-        // 중복이 없을 경우에만 즐겨찾기 추가 요청
         fetch(`http://localhost:8080/api/members/updateLikes`, {
           method: 'POST',
           headers: {
@@ -307,8 +329,7 @@ export default function Read() {
           }
         )
 
-        if (removeLikeResponse.ok) {
-        } else {
+        if (!removeLikeResponse.ok) {
           alert('즐겨찾기 제거에 실패했습니다.')
         }
       }
@@ -333,13 +354,14 @@ export default function Read() {
 
   return (
     <div className="container">
-      <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
-        수정
-      </button>
+      {!isModifyHidden && (
+        <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
+          수정
+        </button>
+      )}
 
       {groundsDTO && groundsDTO.gphotosDTOList.length > 0 ? (
         groundsDTO.gphotosDTOList.length > 1 ? (
-          // 사진이 여러 장일 때 슬라이더 사용
           <div className="slider-container">
             <Slider {...sliderSettings}>
               {groundsDTO.gphotosDTOList.map((photo, index) => (
@@ -355,7 +377,6 @@ export default function Read() {
             </Slider>
           </div>
         ) : (
-          // 사진이 한 장일 때 슬라이더 없이 이미지 단독 표시
           <div className="image-container">
             <img
               src={formatImageUrl(groundsDTO.gphotosDTOList[0])}
@@ -389,8 +410,6 @@ export default function Read() {
               <p>경기 날짜: {formatDate(groundsDTO.day)}</p>
               <p>경기 시간: {groundsDTO.groundstime}</p>
               <p>모집 인원: {groundsDTO.maxpeople} 명</p>
-              <p>예약 인원: {groundsReviewsDTO ? groundsReviewsDTO.length : 0} 명</p>{' '}
-              {/* 예약 인원 계산 */}
               <p>요금: {groundsDTO.price.toLocaleString()} 원</p>
             </div>
           </div>
@@ -399,16 +418,22 @@ export default function Read() {
             <p>{groundsDTO.info}</p>
           </div>
         </div>
-        {!isFullyBooked && (
+        {!isFullyBooked ? (
           <button className="reservation-button" onClick={handleReservation}>
             예약 등록
           </button>
+        ) : (
+          <div className="fully-booked" style={{textAlign: 'center'}}>
+            예약 마감
+          </div>
         )}
       </div>
 
       <div className="card">
         <div className="card-header">
-          <h2>예약 인원 목록</h2>
+          <h2>
+            <p>예약 인원: {groundsReviewsDTO ? groundsReviewsDTO.length : 0} 명</p>{' '}
+          </h2>
         </div>
         <div className="card-body">
           {groundsReviewsDTO ? (
