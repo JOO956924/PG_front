@@ -295,14 +295,19 @@ export default function List() {
                   )
                 }>
                 <div className="card-content">
+                  <span className="sports-info">종목: {ground.sports}</span>
                   <span className="game-schedule">경기 시간: {ground.groundstime}</span>
                   <span className="game-info">구장명: {ground.gtitle}</span>
-                  <span className="sports-info">종목: {ground.sports}</span>
                   <span className="location-info">위치: {ground.location}</span>
-                  <span>예약 인원: {reservationCounts[ground.gno] || 0} 명</span>{' '}
                 </div>
                 <div className="card-button">
-                  <span className="people-info">모집 인원: {ground.maxpeople}</span>
+                  <span className="people-info">
+                    {reservationCounts[ground.gno] >= ground.maxpeople
+                      ? '마감'
+                      : `모집 인원: ${reservationCounts[ground.gno] || 0} / ${
+                          ground.maxpeople
+                        }`}
+                  </span>
                 </div>
               </div>
             </div>
