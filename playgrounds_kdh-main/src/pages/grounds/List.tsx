@@ -76,16 +76,20 @@ export default function List() {
   const [types, setTypes] = useState(query.get('type') || '')
   const [selectedDay, setSelectedDay] = useState(query.get('day') || '') // URL에서 day 값을 가져와서 유지
   const [reservationCounts, setReservationCounts] = useState<{[key: number]: number}>({}) // 각 구장의 예약 인원을 저장할 상태
+  const [isRegisterHidden, setIsRegisterHidden] = useState(false) // Register 버튼 숨김 여부 상태
 
   useEffect(() => {
-    const page = query.get('page') || '1'
-    const type = query.get('type') || ''
-    const keyword = query.get('keyword') || ''
-    const day = query.get('day') || selectedDay // 항상 day 값을 유지
-
-    let url = `http://localhost:8080/api/grounds/list?page=${page}&type=${type}&keyword=${keyword}&day=${day}`
-
     if (token) {
+      // 권한 정보를 가져와 console.log에 출력
+      fetchUserRoles()
+
+      const page = query.get('page') || '1'
+      const type = query.get('type') || ''
+      const keyword = query.get('keyword') || ''
+      const day = query.get('day') || selectedDay // 항상 day 값을 유지
+
+      let url = `http://localhost:8080/api/grounds/list?page=${page}&type=${type}&keyword=${keyword}&day=${day}`
+
       fetch(url, {
         method: 'GET',
         headers: {
@@ -110,6 +114,33 @@ export default function List() {
         .catch(err => console.log('Error:', err))
     }
   }, [query, token, selectedDay])
+
+  // 사용자 권한 정보를 가져와 console.log에 출력하는 함수
+  const fetchUserRoles = () => {
+    fetch(
+      `http://localhost:8080/api/members/user/roles?email=${sessionStorage.getItem(
+        'email'
+      )}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+        return res.json()
+      })
+      .then(data => {
+        console.log('User Roles:', data) // roleSet 콘솔에 출력
+        // roleSet이 0을 포함하면 Register 버튼을 숨김 처리
+        setIsRegisterHidden(data.includes(0))
+      })
+      .catch(err => console.log('Error fetching user roles:', err))
+  }
 
   const fetchReservationCount = (gno: number) => {
     // 각 구장의 예약 인원을 가져오는 함수
@@ -229,19 +260,21 @@ export default function List() {
           >
             Search
           </button>
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            style={{
-              fontSize: '30px',
-              marginLeft: '10px',
-              background: 'white',
-              color: '#bd5d38',
-              border: '1px solid #bd5d38'
-            }}
-            onClick={goRegister}>
-            Register
-          </button>
+          {!isRegisterHidden && ( // Register 버튼을 조건부로 렌더링
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              style={{
+                fontSize: '30px',
+                marginLeft: '10px',
+                background: 'white',
+                color: '#bd5d38',
+                border: '1px solid #bd5d38'
+              }}
+              onClick={goRegister}>
+              Register
+            </button>
+          )}
         </div>
       </form>
 
