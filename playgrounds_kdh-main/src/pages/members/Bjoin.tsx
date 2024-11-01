@@ -65,7 +65,7 @@ const Signup = () => {
     if (Object.keys(formErrors).length === 0) {
       console.log('제출할 데이터 :', formData)
       try {
-        const response = await fetch('http://localhost:8080/api/members/join', {
+        const response = await fetch('http://localhost:8080/api/members/bjoin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -55,16 +55,7 @@ export default function Login() {
         sessionStorage.setItem('email', email) // 이메일 저장
         sessionStorage.setItem('mid', data.mid) // mid 저장
 
-        if (data.roles) {
-          sessionStorage.setItem('roles', JSON.stringify(data.roles)) // 이미 숫자로 저장된 roles
-        }
-
         console.log('Session Storage Values:')
-        console.log('Token:', sessionStorage.getItem('token'))
-        console.log('Email:', sessionStorage.getItem('email'))
-        console.log('Mid:', sessionStorage.getItem('mid'))
-        console.log('Roles:', sessionStorage.getItem('roles'))
-
         navigate('/grounds/list')
       } else {
         navigate('/login')
