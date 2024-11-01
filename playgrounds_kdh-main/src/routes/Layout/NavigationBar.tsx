@@ -12,7 +12,6 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
   const navigate = useNavigate()
 
   const [email, setEmail] = useState<string | null>(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false) // 모바일인지 여부를 추적
 
   useEffect(() => {
@@ -44,10 +43,6 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
     navigate('/login')
   }
 
-  const toggleMenu = () => {
-    setIsMenuOpen(prev => !prev)
-  }
-
   return (
     <nav
       className="navbar navbar-expand-lg navbar-dark bg-primary"
@@ -61,16 +56,23 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
             width: '100%',
             alignItems: 'center'
           }}>
-          {/* 메뉴 버튼: 모바일일 때는 아이콘, 데스크탑에서는 텍스트 */}
-          <div style={{flex: 1}}>
-            <button
+          {/* 경기 참여, 자유 게시판, 내 정보 버튼 */}
+          <div style={{flex: 1, display: 'flex', justifyContent: 'flex-start'}}>
+            <a
               className="btn btn-light"
-              type="button"
-              onClick={toggleMenu}
-              aria-expanded={isMenuOpen}
-              style={{padding: '5px'}}>
-              {isMobile ? <FaBars /> : isMenuOpen ? '메뉴 닫기' : '메뉴 열기'}
-            </button>
+              href="/grounds/list"
+              style={{marginRight: '10px'}}>
+              경기 참여
+            </a>
+            <a
+              className="btn btn-light"
+              href="/boards/list"
+              style={{marginRight: '10px'}}>
+              자유 게시판
+            </a>
+            <a className="btn btn-light" href="/members/profile">
+              내 정보
+            </a>
           </div>
 
           {/* 이메일, 환영 문구, 로그아웃 버튼: 모바일에서는 환영 문구 숨김 */}
@@ -98,57 +100,6 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
             </button>
           </div>
         </div>
-
-        {isMenuOpen && (
-          <div
-            className="navbar-collapse"
-            id="navbarResponsive"
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 5px)',
-              left: '0',
-              backgroundColor: '#dc7545',
-              zIndex: 1,
-              transition: 'all 0.3s ease',
-              padding: '10px',
-              display: 'block'
-            }}>
-            <ul
-              className="navbar-nav"
-              style={{
-                padding: 0,
-                margin: 0,
-                listStyleType: 'none',
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-              <li className="nav-item" style={{marginBottom: '5px'}}>
-                <a
-                  className="nav-link"
-                  href="/grounds/list"
-                  style={{display: 'block', color: 'white'}}>
-                  경기 참여
-                </a>
-              </li>
-              <li className="nav-item" style={{marginBottom: '5px'}}>
-                <a
-                  className="nav-link"
-                  href="/boards/list"
-                  style={{display: 'block', color: 'white'}}>
-                  자유게시판 및 건의사항
-                </a>
-              </li>
-              <li className="nav-item" style={{marginBottom: '5px'}}>
-                <a
-                  className="nav-link"
-                  href="/members/profile"
-                  style={{display: 'block', color: 'white'}}>
-                  내 페이지
-                </a>
-              </li>
-            </ul>
-          </div>
-        )}
       </div>
     </nav>
   )

@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import {useNavigate, useSearchParams} from 'react-router-dom' // useNavigate, useSearchParams 사용
+import {useNavigate, useSearchParams} from 'react-router-dom'
 
 const Calendar = () => {
   const today = new Date()
@@ -14,30 +14,29 @@ const Calendar = () => {
     if (dayFromQuery) {
       const extractedDay = parseInt(dayFromQuery.slice(-2)) // 마지막 두 자리(day) 추출
       setSelectedDay(extractedDay)
-    } else {
+    } else if (selectedDay === null) {
+      // URL에 'day'가 없고, selectedDay가 null일 때만 오늘 날짜로 설정
       const todayDay = today.getDate()
       navigate(
         `/grounds/list?day=${today.getFullYear()}${String(today.getMonth() + 1).padStart(
           2,
           '0'
         )}${String(todayDay).padStart(2, '0')}&page=1`
-      ) // 오늘의 day로 검색
+      )
       setSelectedDay(todayDay) // 오늘의 day를 선택
     }
-  }, [searchParams, navigate, today])
+  }, [searchParams, navigate, today, selectedDay])
 
   const year = currentDate.getFullYear()
-  const month = currentDate.getMonth() // 0부터 시작 (0: 1월)
-  const firstDay = new Date(year, month, 1).getDay() // 해당 월 첫째 날의 요일
-  const daysInMonth = new Date(year, month + 1, 0).getDate() // 해당 월의 일 수
+  const month = currentDate.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  // 월 변경 함수: 다음달, 지난달로 이동하고 검색 쿼리 리셋
   const changeMonth = (delta: number) => {
     const newDate = new Date(year, month + delta, 1)
     setCurrentDate(newDate)
 
     if (delta > 0) {
-      // 다음달로 가면 첫번째 날 선택
       setSelectedDay(1)
       navigate(
         `/grounds/list?day=${newDate.getFullYear()}${String(
@@ -45,7 +44,6 @@ const Calendar = () => {
         ).padStart(2, '0')}01&page=1`
       )
     } else {
-      // 지난달로 가면 마지막 날 선택
       const lastDay = new Date(year, month + delta + 1, 0).getDate()
       setSelectedDay(lastDay)
       navigate(
@@ -56,40 +54,36 @@ const Calendar = () => {
     }
   }
 
-  // 날짜 클릭 시 해당 '년도(year)', '월(month)', '일(day)' 값을 YYYYMMDD 형식으로 검색
   const handleDayClick = (day: number) => {
     const year = currentDate.getFullYear()
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0') // month는 0부터 시작하므로 1을 더하고, 한 자리수일 때 앞에 0을 붙임
-    const dayString = String(day).padStart(2, '0') // day도 한 자리수일 때 앞에 0을 붙임
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+    const dayString = String(day).padStart(2, '0')
 
-    const formattedDate = `${year}${month}${dayString}` // YYYYMMDD 형식으로 날짜 생성
+    const formattedDate = `${year}${month}${dayString}`
 
-    // 기존 쿼리 파라미터 유지한 상태로 새로운 날짜 검색
     const currentKeyword = searchParams.get('keyword') || ''
-
-    navigate(`/grounds/list?day=${formattedDate}&keyword=${currentKeyword}&page=1`) // YYYYMMDD 형식으로 검색
-    setSelectedDay(day) // 선택된 날짜로 설정
+    navigate(`/grounds/list?day=${formattedDate}&keyword=${currentKeyword}&page=1`)
+    setSelectedDay(day)
   }
 
-  // 날짜 렌더링
   const renderDays = () => {
     const days = []
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} style={{padding: '10px'}}></div>)
     }
     for (let i = 1; i <= daysInMonth; i++) {
-      const isSelected = i === selectedDay // 검색된 day 값으로 강조
+      const isSelected = i === selectedDay
       days.push(
         <div
           key={i}
-          onClick={() => handleDayClick(i)} // 날짜 클릭 이벤트 추가
+          onClick={() => handleDayClick(i)}
           style={{
             textAlign: 'center',
             padding: '10px',
             borderRadius: '50%',
-            backgroundColor: isSelected ? '#ddd' : '#fff', // 선택된 날짜일 경우 색상 강조
-            color: isSelected ? '#333' : '#333', // 글자 색상
-            fontWeight: isSelected ? 'bold' : 'normal', // 선택된 날짜일 경우 폰트 굵게
+            backgroundColor: isSelected ? '#ddd' : '#fff',
+            color: isSelected ? '#333' : '#333',
+            fontWeight: isSelected ? 'bold' : 'normal',
             fontSize: '16px',
             border: isSelected ? '2px solid #333' : '1px solid #ccc',
             cursor: 'pointer'
