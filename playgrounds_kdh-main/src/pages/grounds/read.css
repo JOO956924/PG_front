@@ -114,3 +114,32 @@
 .reserve-button:hover {
   background-color: #0056b3;
 }
+
+.slider-container {
+  width: 100%;
+  max-width: 800px; /* 원하는 최대 너비로 설정 */
+  margin: auto;
+}
+
+.slider-container .slick-slide img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  max-height: 500px; /* 원하는 최대 높이로 설정 */
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* 원하는 최대 너비 */
+  margin: auto;
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  max-height: 500px; /* 원하는 최대 높이 */
+  object-fit: cover;
+}

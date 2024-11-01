@@ -332,20 +332,33 @@ export default function Read() {
       </button>
 
       {groundsDTO && groundsDTO.gphotosDTOList.length > 0 ? (
-        <div className="slider-container">
-          <Slider {...sliderSettings}>
-            {groundsDTO.gphotosDTOList.map((photo, index) => (
-              <div key={index}>
-                <img
-                  src={formatImageUrl(photo)}
-                  alt="Ground Image"
-                  className="ground-image"
-                  onError={addDefaultImg}
-                />
-              </div>
-            ))}
-          </Slider>
-        </div>
+        groundsDTO.gphotosDTOList.length > 1 ? (
+          // 사진이 여러 장일 때 슬라이더 사용
+          <div className="slider-container">
+            <Slider {...sliderSettings}>
+              {groundsDTO.gphotosDTOList.map((photo, index) => (
+                <div key={index}>
+                  <img
+                    src={formatImageUrl(photo)}
+                    alt="Ground Image"
+                    className="ground-image"
+                    onError={addDefaultImg}
+                  />
+                </div>
+              ))}
+            </Slider>
+          </div>
+        ) : (
+          // 사진이 한 장일 때 슬라이더 없이 이미지 단독 표시
+          <div className="image-container">
+            <img
+              src={formatImageUrl(groundsDTO.gphotosDTOList[0])}
+              alt="Ground Image"
+              className="ground-image"
+              onError={addDefaultImg}
+            />
+          </div>
+        )
       ) : (
         <div className="image-container">
           <img src={defaultImg} alt="Default Image" className="ground-image" />

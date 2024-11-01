@@ -33,13 +33,31 @@ const Profile: React.FC = () => {
     }
   }, [token])
 
-  const handleGroundClick = (gtitle: string) => {
-    fetch(`http://localhost:8080/api/grounds/gno?gtitle=${encodeURIComponent(gtitle)}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
+  const handleGroundClick = (likeEntry: string) => {
+    // 구장이름과 경기시간을 분리
+    const openParenIndex = likeEntry.indexOf(' (')
+    const closeParenIndex = likeEntry.indexOf(')')
+
+    if (openParenIndex === -1 || closeParenIndex === -1) {
+      console.error('Invalid like format:', likeEntry)
+      return
+    }
+
+    const gtitle = likeEntry.substring(0, openParenIndex).trim()
+    const groundstime = likeEntry.substring(openParenIndex + 2, closeParenIndex).trim()
+
+    // gtitle과 groundstime을 사용하여 gno 요청
+    fetch(
+      `http://localhost:8080/api/grounds/gno?gtitle=${encodeURIComponent(
+        gtitle
+      )}&groundstime=${encodeURIComponent(groundstime)}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
-    })
+    )
       .then(res => res.json())
       .then(gno => {
         navigate(`/grounds/read?gno=${gno}`)

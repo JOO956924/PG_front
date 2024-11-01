@@ -28,7 +28,7 @@ interface PageRequestDTO {
   size: string
   type: string
   keyword: string
-  day: string // day 필드 추가
+  day?: string // day 필드 추가
 }
 
 // PageResultDTO 구조 정의
@@ -110,18 +110,17 @@ export default function List() {
       page: '1',
       type: types,
       keyword: keywords,
-      day: selectedDay || query.get('day') // day 값 유지
+      day: selectedDay || query.get('day') || '' // day 값 유지
     })
   }
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setTypes(e.target.value)
-    // 검색 타입을 변경할 때도 day 값을 유지한 채로 적용
     setQuery({
       page: '1',
       type: e.target.value,
       keyword: keywords,
-      day: selectedDay || query.get('day') // day 값 유지
+      day: selectedDay || query.get('day') || '' // day 값 유지
     })
   }
 
@@ -195,13 +194,16 @@ export default function List() {
             ref={refKeyword}
             value={keywords}
             onChange={e => setKeywords(e.target.value)}
+            disabled={types === ''} // type이 "선택하세요"일 경우 비활성화
           />
 
           <button
             type="button"
             className="btn btn-outline-primary"
             style={{fontSize: '30px', marginLeft: '10px'}}
-            onClick={handleSearch}>
+            onClick={handleSearch}
+            disabled={types === ''} // type이 "선택하세요"일 경우 비활성화
+          >
             Search
           </button>
           <button
