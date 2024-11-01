@@ -54,6 +54,7 @@ export default function Login() {
         sessionStorage.setItem('token', data.token)
         sessionStorage.setItem('email', email) // 이메일 저장
         sessionStorage.setItem('mid', data.mid) // mid 저장
+
         navigate('/grounds/list')
       } else {
         navigate('/login')

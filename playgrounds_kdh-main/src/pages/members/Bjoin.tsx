@@ -1,5 +1,5 @@
 import React, {useState, ChangeEvent, FormEvent} from 'react'
-import {Link, useNavigate} from 'react-router-dom' // 리디렉션을 위해 react-router-dom 사용
+import {useNavigate} from 'react-router-dom' // 리디렉션을 위해 react-router-dom 사용
 
 // formData 타입 정의
 interface FormData {
@@ -107,7 +107,7 @@ const Signup = () => {
         <h1 style={styles.heading}>
           Play Grounds
           <br />
-          회원가입
+          사업자 회원가입
         </h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           {['name', 'email', 'pw', 'confirmPw', 'birth', 'phone'].map(field => (
@@ -130,13 +130,6 @@ const Signup = () => {
           <button type="submit" style={styles.button}>
             회원가입
           </button>
-
-          <div className="mt-6 text-lg text-grey-dark">
-            사업자로 회원가입 하실건가요?
-            <Link className="ml-5 text-lg" to="/bjoin">
-              Join
-            </Link>
-          </div>
         </form>
 
         {/* 모달 창 */}

@@ -3,6 +3,7 @@ import './assets/styles.css'
 import React from 'react'
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import Join from './pages/members/Join'
+import Bjoin from './pages/members/Bjoin'
 import {ReservationProvider} from './contexts/ReservationContext'
 import Layout from './routes/Layout'
 import NoMatch from './routes/NoMatch'
@@ -17,6 +18,7 @@ const App: React.FC = () => {
           {/* 로그인 페이지는 언제나 접근 가능 */}
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/bjoin" element={<Bjoin />} />
 
           {/* PrivateRoute를 사용하여 인증이 필요한 경로 보호 */}
           <Route path="/" element={<PrivateRoute component={Layout} />} />
