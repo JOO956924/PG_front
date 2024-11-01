@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, FormEvent} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
-import {useReservationContext} from '../../contexts/ReservationContext'
+// import {useReservationContext} from '../../contexts/ReservationContext'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
@@ -62,7 +62,7 @@ export default function List() {
   const [query, setQuery] = useSearchParams()
   const refType = useRef<HTMLSelectElement | null>(null)
   const refKeyword = useRef<HTMLInputElement | null>(null)
-  const {reservationCounts} = useReservationContext() // 추가됨
+  // const {reservationCounts} = useReservationContext() // 추가됨
 
   const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
     page: '',
@@ -75,6 +75,7 @@ export default function List() {
   const [keywords, setKeywords] = useState(query.get('keyword') || '')
   const [types, setTypes] = useState(query.get('type') || '')
   const [selectedDay, setSelectedDay] = useState(query.get('day') || '') // URL에서 day 값을 가져와서 유지
+  const [reservationCounts, setReservationCounts] = useState<{[key: number]: number}>({}) // 각 구장의 예약 인원을 저장할 상태
 
   useEffect(() => {
     const page = query.get('page') || '1'
@@ -100,10 +101,30 @@ export default function List() {
         .then(data => {
           setPageRequestDTO(data.pageRequestDTO)
           setPageResultDTO(data.pageResultDTO)
+
+          // 구장의 예약 인원을 별도 API 호출로 가져옴
+          data.pageResultDTO.dtoList.forEach((ground: Grounds) => {
+            fetchReservationCount(ground.gno)
+          })
         })
         .catch(err => console.log('Error:', err))
     }
   }, [query, token, selectedDay])
+
+  const fetchReservationCount = (gno: number) => {
+    // 각 구장의 예약 인원을 가져오는 함수
+    fetch(`http://localhost:8080/api/greviews/all/${gno}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setReservationCounts(prev => ({...prev, [gno]: data.length})) // 예약 인원을 상태에 저장
+      })
+      .catch(err => console.log(`Error fetching reservation count for gno ${gno}:`, err))
+  }
 
   const handleSearch = (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -246,7 +267,6 @@ export default function List() {
                   <span className="sports-info">종목: {ground.sports}</span>
                   <span className="location-info">위치: {ground.location}</span>
                   <span>예약 인원: {reservationCounts[ground.gno] || 0} 명</span>{' '}
-                  {/* 수정됨 */}
                 </div>
                 <div className="card-button">
                   <span className="people-info">모집 인원: {ground.maxpeople}</span>

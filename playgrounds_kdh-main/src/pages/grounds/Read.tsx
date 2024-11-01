@@ -1,6 +1,5 @@
 import {SyntheticEvent, useEffect, useState} from 'react'
 import {useNavigate, useSearchParams, useLocation} from 'react-router-dom'
-import {useReservationContext} from '../../contexts/ReservationContext'
 import useToken from '../../hooks/useToken'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
@@ -81,7 +80,6 @@ export default function Read() {
   const [groundsReviewsDTO, setGroundsReviewsDTO] = useState<GroundsReviewsDTO[] | null>(
     null
   )
-  const {setReservationCounts} = useReservationContext()
   const addDefaultImg = (e: SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = defaultImg
   }
@@ -143,14 +141,10 @@ export default function Read() {
         .then(res => res.json())
         .then(data => {
           setGroundsReviewsDTO(data)
-          setReservationCounts(prev => ({
-            ...prev,
-            [gno]: data.length // 전역 상태에 예약 인원 업데이트 // 수정됨
-          }))
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [gno, token, setReservationCounts]) // 수정됨
+  }, [gno, token])
 
   const goModify = (gno: number) => {
     navigate(
