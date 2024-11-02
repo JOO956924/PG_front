@@ -82,7 +82,7 @@ export default function Login() {
           style={{background: '#bd5d38'}}>
           <form method="post" onSubmit={onSubmit}>
             <h1 className="mb-8 text-4xl text-center text-white text-primary">
-              Insta Feeds
+              PlayGrounds
             </h1>
             <input
               type="text"

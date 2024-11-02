@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react'
 import '../../App.css'
 import type {FC, CSSProperties} from 'react'
 import {FaBars} from 'react-icons/fa' // 메뉴 아이콘을 위해 react-icons 사용
+import './navigationBar.css'
 
 export type NavProps = {
   style?: CSSProperties

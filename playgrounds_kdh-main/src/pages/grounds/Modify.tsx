@@ -1,6 +1,7 @@
 import {FormEvent, useCallback, useEffect, useRef, useState} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
+import './modify.css'
 
 interface GphotosDTO {
   uuid: string | Blob

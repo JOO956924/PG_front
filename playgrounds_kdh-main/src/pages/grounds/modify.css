@@ -8,6 +8,14 @@
   font-size: 18px;
   border-radius: 5px;
   border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  outline: none;
 }
 
 /* 파일 선택 버튼 스타일 */
@@ -18,6 +26,7 @@
 #custom-label {
   margin-top: 10px;
   font-size: 16px;
+  color: #555;
 }
 
 /* 달력 날짜 선택 컨테이너 */
@@ -26,6 +35,7 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
+  justify-content: center;
 }
 
 /* 달력 날짜 버튼 스타일 */
@@ -35,6 +45,7 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 14px;
   transition: background-color 0.3s;
 }
 
@@ -43,7 +54,7 @@
 }
 
 .calendar-date-button.selected {
-  background-color: #bd5d38;
+  background-color: #007bff;
   color: white;
 }
 
@@ -51,11 +62,14 @@
 .uploadResult ul {
   list-style: none;
   padding: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .uploadResult li {
-  margin-bottom: 10px;
   position: relative;
+  display: inline-block;
 }
 
 .uploadResult img {
@@ -63,6 +77,8 @@
   max-height: 100px;
   object-fit: cover;
   border-radius: 5px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 파일 제거 버튼 스타일 */
@@ -77,6 +93,7 @@
   border-radius: 50%;
   cursor: pointer;
   font-size: 12px;
+  transition: background-color 0.3s;
 }
 
 .removeBtn:hover {
@@ -90,10 +107,15 @@
   padding: 15px;
   font-weight: bold;
   text-align: center;
-  transition: background-color 0.3s, color 0.3s;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 #btnSave:hover {
-  background-color: #bd5d38;
+  background-color: #0056b3;
   color: white;
 }

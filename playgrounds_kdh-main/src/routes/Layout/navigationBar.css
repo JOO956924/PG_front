@@ -1,0 +1,70 @@
+/* 네비게이션 바 전체 스타일 */
+#topNav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  background-color: #007bff; /* 네비게이션 바 배경색 */
+}
+
+/* 네비게이션 바 내부 컨테이너 */
+#topNav .container-fluid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 네비게이션 바 버튼 스타일 */
+#topNav .btn {
+  color: #333;
+  background-color: #f8f9fa;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 10px;
+  border-radius: 5px;
+  padding: 8px 15px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#topNav .btn:hover {
+  background-color: #e0e0e0;
+  color: #007bff;
+}
+
+/* 네비게이션 바 이메일 및 환영 문구 스타일 */
+#topNav .navbar-brand {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#topNav .welcome-text {
+  color: white;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+/* 로그아웃 버튼 스타일 */
+#topNav .btn-danger {
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#topNav .btn-danger:hover {
+  background-color: #ff3b3b;
+}
+
+/* 모바일 화면에서 환영 문구 숨김 */
+@media (max-width: 768px) {
+  #topNav .welcome-text {
+    display: none;
+  }
+}

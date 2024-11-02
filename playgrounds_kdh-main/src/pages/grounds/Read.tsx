@@ -256,10 +256,12 @@ export default function Read() {
             handleFavorite()
           })
           .catch(err => console.log('Error:', err))
+          .finally(() => {
+            window.location.reload() // 예약 등록 후 새로고침
+          })
       })
       .catch(err => console.log('Error:', err))
   }
-
   const handleFavorite = () => {
     const email = sessionStorage.getItem('email')
     if (!email) {

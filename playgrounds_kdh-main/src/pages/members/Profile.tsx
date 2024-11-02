@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import useToken from '../../hooks/useToken'
+import './profile.css'
 
 interface MemberDTO {
   mid: number
@@ -77,8 +78,6 @@ const Profile: React.FC = () => {
       <p>이메일: {member.email}</p>
       <p>이름: {member.name}</p>
       <p>캐쉬: {member.nowcash.toLocaleString()} 원</p>
-      <p>레벨: {member.level}</p>
-      <p>선호 종목: {member.prefer}</p>
       <button onClick={() => navigate('/members/charge')}>캐쉬 충전</button>
       <h2>예약한구장</h2>
       <ul>

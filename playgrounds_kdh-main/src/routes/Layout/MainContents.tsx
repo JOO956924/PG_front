@@ -55,15 +55,6 @@ export const MainContents: FC<MainContentsProps> = ({style}) => {
         <div className="resume-section-content">
           <h1 className="mt-4">
             <span className="text-primary">Play Grounds</span>
-            <div
-              style={{
-                fontSize: '32px',
-                paddingLeft: '10px',
-                display: 'inline-block',
-                width: '1000px'
-              }}>
-              {pathname}
-            </div>
           </h1>
           <div className="resume-section">{renderContent()}</div>
         </div>
