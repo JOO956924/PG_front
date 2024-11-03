@@ -27,6 +27,13 @@ interface BphotosDTO {
   bphotosName: string
   path: string
 }
+// PageRequestDTO 구조 정의
+interface PageRequestDTO {
+  page: string
+  size: string
+  type: string
+  keyword: string
+}
 
 export default function Read() {
   const email = sessionStorage.getItem('email')?.trim() || ''
@@ -42,6 +49,14 @@ export default function Read() {
   const page = query.get('page') || '1'
   const type = query.get('type') || ''
   const keyword = query.get('keyword') || ''
+
+  // 가변 상태를 캐시하기 위한 선언
+  const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
+    page: '',
+    size: '',
+    type: '',
+    keyword: ''
+  })
 
   const parseJwt = (token: string) => {
     try {
@@ -133,14 +148,18 @@ export default function Read() {
     autoplaySpeed: 3000 // 자동 재생 속도
   }
 
-  const goModify = () => {
-    if (!boardsDTO) {
-      console.log('boardsDTO가 null입니다. 수정 페이지로 이동할 수 없습니다.')
-      return // boardsDTO가 null인 경우 함수를 종료
-    }
+  // const goModify = () => {
+  //   if (!boardsDTO) {
+  //     console.log('boardsDTO가 null입니다. 수정 페이지로 이동할 수 없습니다.')
+  //     return // boardsDTO가 null인 경우 함수를 종료
+  //   }
 
-    console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO.bno}`)
-    navigate(`/boards/modify/${boardsDTO.bno}`, {state: {boardsDTO}}) // 데이터 전달
+  //   console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO.bno}`)
+  //   navigate(`/boards/modify/${boardsDTO.bno}`, {state: {boardsDTO}}) // 데이터 전달
+  // }
+
+  const goModify = (): void => {
+    navigate(`/boards/modify?bno=${bno}`)
   }
 
   const goDelete = () => {
