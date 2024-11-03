@@ -12,7 +12,7 @@ interface BoardsDTO {
   email: string
 }
 
-interface ReviewsDTO {
+interface ReviewDTO {
   email: string
   text: string
   reviewsnum: number
@@ -25,8 +25,8 @@ export default function Read() {
   const [query] = useSearchParams()
   const [boardsDTO, setBoardsDTO] = useState<BoardsDTO | null>(null)
   const [error, setError] = useState<string>('')
-  const [reviews, setReviews] = useState<ReviewsDTO[]>([]) // 타입 변경
-  const [newReview, setNewReview] = useState<string>('')
+  const [reviews, setReviews] = useState<ReviewDTO[]>([])
+  const [newReview, setNewReview] = useState<string>('') // 여기서 newReview 사용
   const [loading, setLoading] = useState<boolean>(true)
 
   const bno = Number(query.get('bno'))
@@ -75,7 +75,7 @@ export default function Read() {
           const token = sessionStorage.getItem('token')
           if (token) {
             const claims = parseJwt(token)
-            sessionStorage.setItem('memberId', claims.mid)
+            sessionStorage.setItem('mid', claims.mid)
           }
         })
         .catch(err => {
@@ -85,14 +85,21 @@ export default function Read() {
         })
 
       fetch(`http://localhost:8080/api/reviews/${bno}`)
-        .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
-        .then(data => {
-          console.log('댓글 데이터:', data)
-          setReviews(data.reviews)
+        .then(res => {
+          if (res.ok) {
+            return res.json()
+          } else {
+            throw new Error('댓글을 불러오는 데 실패했습니다.')
+          }
         })
-        .catch(() => setError('댓글을 불러오는 데 실패했습니다.'))
-    } else {
-      console.warn('게시글 번호가 유효하지 않습니다.')
+        .then(data => {
+          console.log('댓글 데이터:', data) // 여기서 data 구조를 확인
+          setReviews(data) // reviews 속성이 아니라 data를 직접 설정
+        })
+        .catch(err => {
+          console.error('댓글 요청 오류:', err)
+          setError('댓글을 불러오는 데 실패했습니다.')
+        })
     }
   }, [bno])
 
@@ -102,8 +109,13 @@ export default function Read() {
   }
 
   const goModify = () => {
-    console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO?.bno}`)
-    navigate(`/boards/modify/${boardsDTO?.bno}`)
+    if (!boardsDTO) {
+      console.log('boardsDTO가 null입니다. 수정 페이지로 이동할 수 없습니다.')
+      return // boardsDTO가 null인 경우 함수를 종료
+    }
+
+    console.log(`게시글 수정 페이지로 이동: bno=${boardsDTO.bno}`)
+    navigate(`/boards/modify/${boardsDTO.bno}`, {state: {boardsDTO}}) // 데이터 전달
   }
 
   const goDelete = () => {
@@ -133,28 +145,44 @@ export default function Read() {
     }
   }
 
+  // addReview 함수 수정
   const addReview = () => {
-    const memberId = Number(sessionStorage.getItem('memberId'))
-    if (!newReview.trim() || !memberId) {
+    const mid = Number(sessionStorage.getItem('mid'))
+    if (!newReview.trim() || !mid) {
       console.log('회원 정보 또는 댓글 내용이 누락되었습니다.')
       return
     }
 
-    console.log(`댓글 추가 API 호출: mid=${memberId}, bno=${bno}`)
+    console.log(`댓글 추가 API 호출: mid=${mid}, bno=${bno}`)
+    console.log('보내는 데이터:', {
+      mid: mid,
+      bno,
+      text: newReview
+    })
+
     fetch(`http://localhost:8080/api/reviews/${bno}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
       },
-      body: JSON.stringify({mid: memberId, bno, text: newReview})
+      body: JSON.stringify({mid: mid, bno, text: newReview})
     })
-      .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
-      .then(newReviewData => {
-        console.log('댓글 추가 성공:', newReviewData)
-        setReviews((prevReviews = []) => [newReviewData, ...prevReviews])
-
-        setNewReview('')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP 에러! 상태: ${res.status}`)
+        }
+        return res.json()
+      })
+      .then(() => {
+        // 댓글 목록을 다시 불러오기
+        fetch(`http://localhost:8080/api/reviews/${bno}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log('댓글 데이터 재조회:', data)
+            setReviews(data)
+          })
+        setNewReview('') // 입력란 비우기
       })
       .catch(error => {
         console.error('댓글 추가 실패:', error)
@@ -178,7 +206,7 @@ export default function Read() {
           <p className="read-body">본문 내용: {boardsDTO?.body}</p>
         </div>
         <div className="read-likes-container">
-          <p className="read-likes">좋아요 수: {boardsDTO?.likes}</p>
+          <p className="read-likes">댓글 수: {boardsDTO?.likes}</p>
         </div>
         <div className="read-date-container">
           <p className="read-date">
@@ -193,46 +221,47 @@ export default function Read() {
             }).format(new Date(boardsDTO?.regDate || ''))}
           </p>
         </div>
-        <div className="btn-group">
-          <button className="btn btn-outline-success" onClick={goModify}>
-            수정하기
-          </button>
-          <button className="btn btn-outline-danger" onClick={goDelete}>
-            삭제하기
-          </button>
-        </div>
+        {boardsDTO?.email === email && (
+          <div className="btn-group">
+            <button className="btn btn-outline-success" onClick={goModify}>
+              수정하기
+            </button>
+            <button className="btn btn-outline-danger" onClick={goDelete}>
+              삭제하기
+            </button>
+          </div>
+        )}
         <h3 className="reviews-title">댓글</h3>
         {error && <div className="error-message">{error}</div>}
         <div className="reviews-container">
-          {reviews && reviews.length > 0 ? (
-            reviews.map(review => {
+          {reviews.length > 0 ? (
+            reviews.map((review, index) => {
               const reviewDate = new Date(review.regDate)
               const displayDate = isNaN(reviewDate.getTime())
                 ? '날짜 불명'
                 : reviewDate.toLocaleString()
 
-              // reviewsnum 또는 bno가 undefined가 아닌지 확인
-              const reviewKey = review.reviewsnum
-                ? `${review.reviewsnum}-${bno}`
-                : `key-${Math.random()}`
+              // 유효한 키 값 설정
+              const reviewKey = review.reviewsnum ?? `review-${index}`
 
               return (
                 <div key={reviewKey}>
                   <p>작성자: {review.email}</p>
                   <p>내용: {review.text}</p>
-                  <p>작성일: {displayDate}</p>
+                  <p>등록일: {displayDate}</p>
+                  <hr />
                 </div>
               )
             })
           ) : (
-            <p>댓글이 없습니다.</p>
+            <div>댓글이 없습니다.</div>
           )}
         </div>
-
-        <div className="add-review-container">
-          <textarea
-            className="add-review-textarea"
-            placeholder="댓글을 입력하세요."
+        <div className="review-input-container">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="댓글을 입력하세요"
             value={newReview}
             onChange={e => setNewReview(e.target.value)}
           />

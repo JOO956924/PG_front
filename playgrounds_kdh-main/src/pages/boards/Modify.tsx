@@ -84,9 +84,11 @@ export default function Modify() {
         body: e.currentTarget.body.value,
         modifiedDate: new Date().toISOString()
       }
+      console.log('Modified data:', modifiedData)
 
-      fetch(`http://localhost:8080/api/boards/modify`, {
-        method: 'POST',
+      fetch(`http://localhost:8080/api/boards/modify/${bno}`, {
+        // bno 추가
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
@@ -94,6 +96,7 @@ export default function Modify() {
         body: JSON.stringify(modifiedData)
       })
         .then(res => {
+          console.log('Response:', res) // 추가된 로깅
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`)
           }
