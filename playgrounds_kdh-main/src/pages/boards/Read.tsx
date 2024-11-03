@@ -1,8 +1,12 @@
 import {useEffect, useState} from 'react'
 import {useNavigate, useSearchParams} from 'react-router-dom'
+import Slider from 'react-slick' // 이미지 슬라이더 라이브러리 임포트
+import 'slick-carousel/slick/slick.css' // 슬라이더 스타일 임포트
+import 'slick-carousel/slick/slick-theme.css'
 import './BoardStyles.css'
 
 interface BoardsDTO {
+  bphotosDTOList: BphotosDTO[]
   bno: number
   mid: number
   title: string
@@ -17,6 +21,11 @@ interface ReviewDTO {
   text: string
   reviewsnum: number
   regDate: string
+}
+interface BphotosDTO {
+  uuid: string
+  bphotosName: string
+  path: string
 }
 
 export default function Read() {
@@ -103,9 +112,25 @@ export default function Read() {
     }
   }, [bno])
 
+  const formatImageUrl = (photo: BphotosDTO): string =>
+    `http://localhost:8080/api/display?fileName=${encodeURI(
+      `${photo.path}/${photo.uuid}_${photo.bphotosName}`
+    )}`
+
   const goBack = () => {
     console.log('목록으로 돌아갑니다.')
     navigate(`/boards/list?page=${page}&type=${type}&keyword=${keyword}`)
+  }
+
+  // 슬라이더 설정
+  const sliderSettings = {
+    dots: true, // 슬라이더 하단에 점 표시
+    infinite: true, // 무한 반복 여부
+    speed: 500, // 슬라이드 전환 속도
+    slidesToShow: 1, // 한 번에 표시할 슬라이드 수
+    slidesToScroll: 1, // 스크롤할 슬라이드 수
+    autoplay: true, // 자동 재생 여부
+    autoplaySpeed: 3000 // 자동 재생 속도
   }
 
   const goModify = () => {
@@ -202,6 +227,21 @@ export default function Read() {
       <div className="read-content">
         <h2 className="read-title">제목: {boardsDTO?.title}</h2>
         <p className="read-author">글쓴이: {boardsDTO?.email}</p>
+        {boardsDTO?.bphotosDTOList.length > 0 ? (
+          <Slider {...sliderSettings}>
+            {boardsDTO.bphotosDTOList.map((photo, index) => (
+              <div key={index}>
+                <img
+                  src={formatImageUrl(photo)} // 이미지 URL 설정
+                  alt="Board Photo"
+                  className="board-image"
+                />
+              </div>
+            ))}
+          </Slider>
+        ) : (
+          <p>이미지가 없습니다.</p> // 이미지가 없을 경우 메시지 표시
+        )}
         <div className="read-body-container">
           <p className="read-body">본문 내용: {boardsDTO?.body}</p>
         </div>
