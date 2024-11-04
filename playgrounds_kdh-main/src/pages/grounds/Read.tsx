@@ -257,9 +257,6 @@ export default function Read() {
             handleFavorite()
           })
           .catch(err => console.log('Error:', err))
-          .finally(() => {
-            window.location.reload() // 예약 등록 후 새로고침
-          })
       })
       .catch(err => console.log('Error:', err))
   }
@@ -290,7 +287,15 @@ export default function Read() {
             Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({email, gno})
-        }).catch(err => console.log('Error:', err))
+        })
+          .then(response => {
+            if (response.ok) {
+              window.location.reload() // 즐겨찾기 추가 후 페이지 새로고침
+            } else {
+              alert('예약구장 목록 추가에 실패했습니다.')
+            }
+          })
+          .catch(err => console.log('Error:', err))
       })
       .catch(err => console.log('Error:', err))
   }
