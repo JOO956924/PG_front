@@ -16,12 +16,14 @@ interface MemberDTO {
 
 const Profile: React.FC = () => {
   const [member, setMember] = useState<MemberDTO | null>(null)
+  const [titles, setTitles] = useState<string[]>([])
   const token = useToken()
   const navigate = useNavigate()
 
   useEffect(() => {
     const email = sessionStorage.getItem('email')
     if (email) {
+      // 회원 정보 가져오기
       fetch(`http://localhost:8080/api/members/email/${email}`, {
         method: 'GET',
         headers: {
@@ -31,11 +33,24 @@ const Profile: React.FC = () => {
         .then(res => res.json())
         .then(data => setMember(data))
         .catch(err => console.log('Error:', err))
+
+      // 내가 쓴 글 제목 가져오기
+      fetch(
+        `http://localhost:8080/api/boards/titles?email=${encodeURIComponent(email)}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+        .then(res => res.json())
+        .then(data => setTitles(data))
+        .catch(err => console.log('Error:', err))
     }
   }, [token])
 
   const handleGroundClick = (likeEntry: string) => {
-    // 구장이름과 경기시간을 분리
     const openParenIndex = likeEntry.indexOf(' (')
     const closeParenIndex = likeEntry.indexOf(')')
 
@@ -47,7 +62,6 @@ const Profile: React.FC = () => {
     const gtitle = likeEntry.substring(0, openParenIndex).trim()
     const groundstime = likeEntry.substring(openParenIndex + 2, closeParenIndex).trim()
 
-    // gtitle과 groundstime을 사용하여 gno 요청
     fetch(
       `http://localhost:8080/api/grounds/gno?gtitle=${encodeURIComponent(
         gtitle
@@ -79,13 +93,23 @@ const Profile: React.FC = () => {
       <p>이름: {member.name}</p>
       <p>캐쉬: {member.nowcash.toLocaleString()} 원</p>
       <button onClick={() => navigate('/members/charge')}>캐쉬 충전</button>
-      <h2>예약한구장</h2>
+
+      <h2>예약한 구장</h2>
       <ul>
         {likesList.map((gtitle, index) => (
           <li key={index} onClick={() => handleGroundClick(gtitle)}>
             {gtitle}
           </li>
         ))}
+      </ul>
+
+      <h2>내가 쓴 글</h2>
+      <ul>
+        {titles.length > 0 ? (
+          titles.map((title, index) => <li key={index}>title:{title}</li>)
+        ) : (
+          <li>작성한 글이 없습니다.</li>
+        )}
       </ul>
     </div>
   )
