@@ -69,6 +69,7 @@ interface MembersDTO {
 }
 
 export default function Read() {
+  const email = sessionStorage.getItem('email')?.trim() || ''
   const [searchParams] = useSearchParams()
   const gno = searchParams.get('gno')
   const token = useToken()
@@ -356,7 +357,7 @@ export default function Read() {
 
   return (
     <div className="container">
-      {!isModifyHidden && (
+      {groundsDTO?.email === email && (
         <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
           수정
         </button>

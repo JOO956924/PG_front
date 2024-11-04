@@ -7,6 +7,8 @@ interface GphotosDTO {
   gphotosName: string | Blob
   path: string | Blob
 }
+// 세션 스토리지에서 email 가져오기
+const email = sessionStorage.getItem('email') || ''
 
 export default function Register() {
   const [query] = useSearchParams() // url주소의 쿼리를 받을 때
@@ -30,6 +32,7 @@ export default function Register() {
   const [membersMid, setMembersMid] = useState<string>('') // 로그인된 사용자의 mid 저장
 
   // 세션 스토리지에서 mid 가져오기
+
   useEffect(() => {
     const storedMid = sessionStorage.getItem('mid')
     console.log(sessionStorage.getItem('mid'))
@@ -95,6 +98,7 @@ export default function Register() {
     if (!appended) return
 
     formData.append('members_mid', membersMid)
+    formData.append('email', email) // email 추가
 
     for (const value of formData.values()) console.log(value)
     const url = 'http://localhost:8080/api/uploadAjax'
@@ -111,7 +115,7 @@ export default function Register() {
         showResult(json)
       })
       .catch(err => console.log('Error: ', err))
-  }, [labelFile])
+  }, [labelFile, email])
 
   function showResult(arr: []) {
     const uploadUL = document.querySelector('.uploadResult ul')
@@ -220,6 +224,7 @@ export default function Register() {
       sports: refSports.current?.value ?? '',
       day: formattedDay, // 선택된 날짜를 YYYYMMDD 형식으로 저장
       members_mid: membersMid, // 세션 스토리지에서 가져온 mid 추가
+      email: email,
       gphotosDTOList: arr
     }
 
@@ -254,6 +259,21 @@ export default function Register() {
         id="frmSend"
         method="post"
         action="http://localhost:8080/api/grounds/register">
+        {/* email */}
+        <div className="form-group">
+          <label htmlFor="email" style={{fontSize: '22px'}}>
+            Email
+          </label>
+          <input
+            type="hidden"
+            name="email"
+            style={{fontSize: '22px'}}
+            id="email"
+            className="form-control"
+            value={email}
+          />
+        </div>
+
         {/* 경기 시간 */}
         <div className="form-group">
           <label htmlFor="groundstime" style={{fontSize: '22px'}}>
