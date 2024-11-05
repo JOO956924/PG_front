@@ -1,8 +1,10 @@
 /* modify.css */
+
 .modify-container {
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
+  width: 800px;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -31,8 +33,16 @@
   border-radius: 4px;
 }
 
+/* 버튼 컨테이너 */
+.button-group {
+  display: flex;
+  justify-content: space-between; /* 버튼 사이에 여백 추가 */
+  gap: 10px; /* 버튼 사이 간격 */
+  margin-top: 20px; /* 위쪽 여백 */
+}
+
 button {
-  width: 100%;
+  width: 100%; /* 버튼이 균등하게 분배되도록 설정 */
   padding: 10px;
   background-color: #007bff;
   color: white;

@@ -27,6 +27,7 @@ export default function ModifyGround() {
   const [formattedDay, setFormattedDay] = useState<string>('')
   const [todayDate, setTodayDate] = useState<string>('')
   const [membersMid, setMembersMid] = useState<string>('')
+  const [email, setEmail] = useState<string | null>(null) // email 상태 추가
 
   const gno = query.get('gno')
 
@@ -39,7 +40,9 @@ export default function ModifyGround() {
 
   useEffect(() => {
     const storedMid = sessionStorage.getItem('mid')
+    const storedEmail = sessionStorage.getItem('email') // 세션에서 email 가져오기
     if (storedMid) setMembersMid(storedMid)
+    if (storedEmail) setEmail(storedEmail) // email 상태에 저장
 
     const today = new Date()
     const formattedToday = today.toISOString().split('T')[0]
@@ -221,6 +224,7 @@ export default function ModifyGround() {
       sports: refSports.current?.value ?? '',
       day: formattedDay,
       members_mid: membersMid,
+      email,
       gphotosDTOList
     }
 
@@ -256,7 +260,15 @@ export default function ModifyGround() {
   }, [gno, token, navigate])
 
   return (
-    <div style={{padding: '0 15%', overflowY: 'auto', maxHeight: '80vh'}}>
+    <div
+      style={{
+        paddingTop: '60px', // 상단 여백
+        padding: '0 15%',
+        overflowY: 'auto',
+        maxHeight: '100%',
+        maxWidth: '100%',
+        width: '900px' // 너비를 600px로 고정
+      }}>
       <form onSubmit={handleSubmit} id="frmModify">
         <div className="form-group">
           <label htmlFor="groundstime">경기 시간</label>
@@ -339,16 +351,14 @@ export default function ModifyGround() {
           <ul></ul>
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          변경 사항 저장
-        </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="btn btn-danger"
-          style={{marginLeft: '10px'}}>
-          글 삭제
-        </button>
+        <div className="button-group">
+          <button type="submit" className="btn btn-primary">
+            변경 사항 저장
+          </button>
+          <button type="button" onClick={handleDelete} className="btn btn-danger">
+            글 삭제
+          </button>
+        </div>
       </form>
     </div>
   )

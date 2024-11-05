@@ -22,12 +22,11 @@ export default function Layout() {
         <MainContents
           style={{
             backgroundColor: 'white',
-            // width: '100%',
+            width: '100%',
             padding: '20px',
             textAlign: 'left',
             overflowY: 'auto',
-            minHeight: '100vh',
-            position: 'relative', // 상대 위치 사용
+            // position: 'relative', // 상대 위치 사용
             left: '-130px' // 중앙에서 왼쪽으로 50px 이동
           }}
         />

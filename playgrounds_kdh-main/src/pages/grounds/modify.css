@@ -1,20 +1,20 @@
 /* 공통 폼 스타일 */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-control {
-  padding: 10px;
-  font-size: 18px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
   width: 100%;
   box-sizing: border-box;
   transition: border-color 0.3s;
 }
 
 .form-control:focus {
-  border-color: #007bff;
+  border-color: #28a745; /* register와 일관된 색상으로 변경 */
   outline: none;
 }
 
@@ -24,24 +24,24 @@
 }
 
 #custom-label {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #555;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
 }
 
 /* 달력 날짜 선택 컨테이너 */
 .calendar-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 15px;
   justify-content: center;
 }
 
 /* 달력 날짜 버튼 스타일 */
 .calendar-date-button {
-  padding: 10px;
-  background-color: #f0f0f0;
+  padding: 8px 12px;
+  background-color: #e9ecef;
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
@@ -50,11 +50,11 @@
 }
 
 .calendar-date-button:hover {
-  background-color: #e0e0e0;
+  background-color: #ced4da;
 }
 
 .calendar-date-button.selected {
-  background-color: #007bff;
+  background-color: #28a745; /* 선택된 날짜에 register 스타일 적용 */
   color: white;
 }
 
@@ -63,7 +63,7 @@
   list-style: none;
   padding: 0;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -73,49 +73,89 @@
 }
 
 .uploadResult img {
-  max-width: 100px;
-  max-height: 100px;
+  max-width: 90px;
+  max-height: 90px;
   object-fit: cover;
   border-radius: 5px;
   border: 1px solid #ccc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 파일 제거 버튼 스타일 */
-.removeBtn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 5px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-.removeBtn:hover {
-  background-color: darkred;
-}
-
-/* 저장 버튼 스타일 */
+/* 전송 버튼 스타일 */
 #btnSave {
   display: block;
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   font-weight: bold;
   text-align: center;
-  background-color: #007bff;
+  background-color: #28a745; /* register와 일관된 색상으로 변경 */
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 #btnSave:hover {
-  background-color: #0056b3;
+  background-color: #218838;
+}
+
+/* 숨겨진 박스 스타일 */
+.box {
+  display: none;
+}
+
+/* modify.css */
+
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
   color: white;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: #28a745; /* register 스타일과 유사하게 변경 */
+}
+
+.btn-primary:hover {
+  background-color: #218838;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+/* .removeBtn 스타일 */
+.removeBtn {
+  width: 20px; /* 버튼 너비를 줄여서 작게 만듭니다 */
+  height: 20px; /* 버튼 높이도 줄입니다 */
+  padding: 0; /* 내부 여백을 제거하여 크기를 더 줄입니다 */
+  font-size: 12px; /* 글자 크기를 작게 설정 */
+  line-height: 1; /* 텍스트 줄 간격 조정 */
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%; /* 원형 버튼 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.removeBtn:hover {
+  background-color: darkred;
 }

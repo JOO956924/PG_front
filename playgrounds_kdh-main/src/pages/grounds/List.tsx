@@ -223,7 +223,11 @@ export default function List() {
         </div>
       </Slider>
 
-      <Calendar selectedDay={selectedDay} onSelectDay={setSelectedDay} />
+      <Calendar
+        selectedDay={selectedDay}
+        onSelectDay={setSelectedDay}
+        style={{width: '600px'}}
+      />
 
       <form method="GET" className="search-form">
         <div className="input-group">

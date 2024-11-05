@@ -361,104 +361,114 @@ export default function Read() {
   }
 
   return (
-    <div className="container">
-      {groundsDTO?.email === email && (
-        <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
-          수정
-        </button>
-      )}
+    <div
+      style={{
+        paddingTop: '60px', // 상단 여백
+        padding: '0 15%',
+        overflowY: 'auto',
+        maxHeight: '100%',
+        maxWidth: '100%',
+        width: '900px' // 너비를 600px로 고정
+      }}>
+      <div className="container">
+        {groundsDTO?.email === email && (
+          <button className="modify-button" onClick={() => goModify(groundsDTO.gno)}>
+            수정
+          </button>
+        )}
 
-      {groundsDTO && groundsDTO.gphotosDTOList.length > 0 ? (
-        groundsDTO.gphotosDTOList.length > 1 ? (
-          <div className="slider-container">
-            <Slider {...sliderSettings}>
-              {groundsDTO.gphotosDTOList.map((photo, index) => (
-                <div key={index}>
-                  <img
-                    src={formatImageUrl(photo)}
-                    alt="Ground Image"
-                    className="ground-image"
-                    onError={addDefaultImg}
-                  />
-                </div>
-              ))}
-            </Slider>
-          </div>
+        {groundsDTO && groundsDTO.gphotosDTOList.length > 0 ? (
+          groundsDTO.gphotosDTOList.length > 1 ? (
+            <div className="slider-container">
+              <Slider {...sliderSettings}>
+                {groundsDTO.gphotosDTOList.map((photo, index) => (
+                  <div key={index}>
+                    <img
+                      src={formatImageUrl(photo)}
+                      alt="Ground Image"
+                      className="ground-image"
+                      onError={addDefaultImg}
+                    />
+                  </div>
+                ))}
+              </Slider>
+            </div>
+          ) : (
+            <div className="image-container">
+              <img
+                src={formatImageUrl(groundsDTO.gphotosDTOList[0])}
+                alt="Ground Image"
+                className="ground-image"
+                onError={addDefaultImg}
+              />
+            </div>
+          )
         ) : (
           <div className="image-container">
-            <img
-              src={formatImageUrl(groundsDTO.gphotosDTOList[0])}
-              alt="Ground Image"
-              className="ground-image"
-              onError={addDefaultImg}
-            />
-          </div>
-        )
-      ) : (
-        <div className="image-container">
-          <img src={defaultImg} alt="Default Image" className="ground-image" />
-        </div>
-      )}
-
-      <div className="card">
-        <div className="card-header">
-          <button
-            className="favorite-button"
-            style={{display: 'none'}}
-            onClick={handleFavorite}>
-            즐겨찾기
-          </button>
-        </div>
-        <div className="card-body">
-          <div className="ground-details">
-            <div>
-              <h1>{groundsDTO.gtitle}</h1>
-              <p>장소: {groundsDTO.location}</p>
-              <p>종목: {groundsDTO.sports}</p>
-              <p>경기 날짜: {formatDate(groundsDTO.day)}</p>
-              <p>경기 시간: {groundsDTO.groundstime}</p>
-              <p>모집 인원: {groundsDTO.maxpeople} 명</p>
-              <p>요금: {groundsDTO.price.toLocaleString()} 원</p>
-            </div>
-          </div>
-          <div className="card-description">설명 및 대여 규정</div>
-          <div>
-            <p>{groundsDTO.info}</p>
-          </div>
-        </div>
-        {!isFullyBooked ? (
-          <button className="reservation-button" onClick={handleReservation}>
-            예약 등록
-          </button>
-        ) : (
-          <div className="fully-booked" style={{textAlign: 'center'}}>
-            예약 마감
+            <img src={defaultImg} alt="Default Image" className="ground-image" />
           </div>
         )}
-      </div>
 
-      <div className="card">
-        <div className="card-header">
-          <h2>
-            <p>예약 인원: {groundsReviewsDTO ? groundsReviewsDTO.length : 0} 명</p>{' '}
-          </h2>
-        </div>
-        <div className="card-body">
-          {groundsReviewsDTO ? (
-            groundsReviewsDTO.map(review => (
-              <div key={review.grno} className="review">
-                <div className="review-header">
-                  <div>{review.name}</div>
-                  <div>{new Date(review.regDate).toLocaleString()}</div>
-                  {review.email === sessionStorage.getItem('email') && (
-                    <button onClick={() => handleDelete(review.grno)}>삭제</button>
-                  )}
-                </div>
+        <div className="card">
+          <div className="card-header">
+            <button
+              className="favorite-button"
+              style={{display: 'none'}}
+              onClick={handleFavorite}>
+              즐겨찾기
+            </button>
+          </div>
+          <div className="card-body">
+            <div className="ground-details">
+              <div>
+                <h1>{groundsDTO.gtitle}</h1>
+                <p>장소: {groundsDTO.location}</p>
+                <p>종목: {groundsDTO.sports}</p>
+                <p>경기 날짜: {formatDate(groundsDTO.day)}</p>
+                <p>경기 시간: {groundsDTO.groundstime}</p>
+                <p>모집 인원: {groundsDTO.maxpeople} 명</p>
+                <p>요금: {groundsDTO.price.toLocaleString()} 원</p>
               </div>
-            ))
+            </div>
+            <div className="card-description">설명 및 대여 규정</div>
+            <div>
+              <p>{groundsDTO.info}</p>
+            </div>
+          </div>
+          {!isFullyBooked ? (
+            <button className="reservation-button" onClick={handleReservation}>
+              예약 등록
+            </button>
           ) : (
-            <div>Loading...</div>
+            <div className="fully-booked" style={{textAlign: 'center'}}>
+              예약 마감
+            </div>
           )}
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h2>
+              <p>예약 인원: {groundsReviewsDTO ? groundsReviewsDTO.length : 0} 명</p>{' '}
+            </h2>
+          </div>
+          <div className="card-body">
+            {groundsReviewsDTO ? (
+              groundsReviewsDTO.map(review => (
+                <div key={review.grno} className="review">
+                  <div className="review-header">
+                    <div>{review.name}</div>
+                    <div>{new Date(review.regDate).toLocaleString()}</div>
+                    {review.email === sessionStorage.getItem('email') && (
+                      <button onClick={() => handleDelete(review.grno)}>삭제</button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div>Loading...</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

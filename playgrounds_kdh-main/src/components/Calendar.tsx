@@ -106,11 +106,23 @@ const Calendar = () => {
       }}>
       <div
         style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px'}}>
-        <button onClick={() => changeMonth(-1)}>◀</button>
-        <span>
+        <button onClick={() => changeMonth(-1)} className="calendar-button">
+          ◀
+        </button>
+        <span
+          style={{
+            fontSize: '15px', // 텍스트 크기 증가
+            padding: '5px 20px', // 여백 추가
+            paddingTop: '15px', // 상단 여백 추가
+            fontWeight: 'bold', // 텍스트 강조
+            width: '150%', // 가로 크기 확장
+            textAlign: 'center' // 텍스트 가운데 정렬
+          }}>
           {year}년 {month + 1}월
         </span>
-        <button onClick={() => changeMonth(1)}>▶</button>
+        <button onClick={() => changeMonth(1)} className="calendar-button">
+          ▶
+        </button>
       </div>
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px'}}>
         {['일', '월', '화', '수', '목', '금', '토'].map((day, idx) => (
