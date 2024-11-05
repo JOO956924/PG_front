@@ -3,17 +3,15 @@ import useToken from '../../hooks/useToken'
 import {useNavigate, useSearchParams, useLocation} from 'react-router-dom'
 import './BoardStyles.css'
 
-// Boards 데이터 구조 정의
 interface Boards {
   bno: number
   title: string
-  bphotosDTOList: {path: string}[]
+  bphotosDTOList: {path: string; thumbnailURL?: string}[]
   reviewsCnt: number
   likes: number
   regDate: string
 }
 
-// PageRequestDTO 구조 정의
 interface PageRequestDTO {
   page: string
   size: string
@@ -21,7 +19,6 @@ interface PageRequestDTO {
   keyword: string
 }
 
-// PageResultDTO 구조 정의
 interface PageResultDTO {
   dtoList: Boards[]
   page: number
@@ -30,49 +27,31 @@ interface PageResultDTO {
   pageList: number[]
   prev: boolean
   next: boolean
+  totalPage: number // totalPage 추가
 }
 
 export default function List() {
   const token = useToken()
   const navigate = useNavigate()
   const location = useLocation()
-  // 주소의 쿼리를 받기 위한 선언
   const [query] = useSearchParams()
 
-  // 입력양식태그 접근을 위한 선언
   const refType = useRef<HTMLSelectElement | null>(null)
   const refKeyword = useRef<HTMLInputElement | null>(null)
-  const refBtnSrch = useRef<HTMLButtonElement | null>(null)
-
-  // 가변 상태를 캐시하기 위한 선언
   const [pageRequestDTO, setPageRequestDTO] = useState<PageRequestDTO>({
-    page: '',
-    size: '',
+    page: '1',
+    size: '10',
     type: '',
     keyword: ''
   })
   const [pageResultDTO, setPageResultDTO] = useState<PageResultDTO | null>(null)
-
   const [inverted, setInverted] = useState(true)
-  const [keywords, setKeywords] = useState('')
   const [types, setTypes] = useState('')
 
-  const options = [
-    {value: '', label: '선택하세요'},
-    {value: 't', label: '제목'},
-    {value: 'c', label: '내용'},
-    {value: 'w', label: '작성자'},
-    {value: 'tc', label: '제목 + 내용'},
-    {value: 'tcw', label: '제목 + 내용 + 작성자'}
-  ]
-
   useEffect(() => {
-    let compare = query.get('page')
-    const page = compare === 'null' || compare == null ? '1' : compare
-    compare = query.get('type')
-    const type = compare === 'null' || compare == null ? '' : compare
-    compare = query.get('keyword')
-    const keyword = compare === 'null' || compare == null ? '' : compare
+    const page = query.get('page') || '1'
+    const type = query.get('type') || ''
+    const keyword = query.get('keyword') || ''
 
     let url = 'http://localhost:8080/api/boards/list'
     const queryParams = []
@@ -82,12 +61,17 @@ export default function List() {
       setInverted(false)
       queryParams.push(`type=${type}`)
     }
-    if (page) queryParams.push(`page=${page}`)
     if (keyword) {
       setInverted(false)
       queryParams.push(`keyword=${keyword}`)
     }
-    if (queryParams.length > 0) url += '?' + queryParams.join('&')
+
+    queryParams.push(`page=${page}`)
+    queryParams.push(`size=10`)
+
+    if (queryParams.length > 0) {
+      url += '?' + queryParams.join('&')
+    }
 
     if (token) {
       fetch(url, {
@@ -109,13 +93,12 @@ export default function List() {
         })
         .catch(err => console.log('Error:', err))
     }
-  }, [query, types, token]) // 쿼리 파라미터 변경 시 리스트 다시 불러옴
+  }, [query, token])
 
   const url = `/boards`
 
   const getSearch = (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault()
-
     const keywordw = refKeyword.current?.value
     const typew = refType.current?.value
 
@@ -124,14 +107,16 @@ export default function List() {
       return
     }
 
-    navigate(url + `/list?type=${typew}&keyword=${keywordw}&page=1`)
+    navigate(`${url}/list?type=${typew}&keyword=${keywordw}&page=1`)
   }
 
-  const goRead = (bno: number, page: number, type: string, keyword: string) => {
-    navigate(`${url}/read?bno=${bno}&page=${page}&type=${type}&keyword=${keyword}`)
+  const goRead = (bno: number) => {
+    navigate(
+      `${url}/read?bno=${bno}&page=${pageResultDTO?.page}&type=${pageRequestDTO.type}&keyword=${pageRequestDTO.keyword}`
+    )
   }
 
-  const goRegister = (): void => {
+  const goRegister = () => {
     const {page, type, keyword} = pageRequestDTO
     navigate(`/boards/register?page=${page}&type=${type}&keyword=${keyword}`)
   }
@@ -144,37 +129,30 @@ export default function List() {
             <select
               className="form-control"
               ref={refType}
-              name="type"
               value={types}
               onChange={e => {
                 const selectedValue = e.target.value
                 setTypes(selectedValue)
-                if (selectedValue === '') {
-                  // "선택하세요"가 선택된 경우
-                  setKeywords('') // 키워드 초기화
-                  setInverted(true) // inverted 상태를 true로 설정
-                  // 추가적인 동작을 하지 않음
-                } else {
-                  // 다른 옵션이 선택된 경우
-                  setInverted(false)
-                  refKeyword.current?.focus() // 키워드 입력란에 포커스
-                }
+                setInverted(selectedValue === '')
+                refKeyword.current?.focus()
               }}>
-              {options.map((item, idx) => (
-                <option key={idx} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
+              <option value="">선택하세요</option>
+              <option value="t">제목</option>
+              <option value="c">내용</option>
+              <option value="w">작성자</option>
+              <option value="tc">제목 + 내용</option>
+              <option value="tcw">제목 + 내용 + 작성자</option>
             </select>
           </div>
           <input
             type="text"
             className="form-control"
-            name="keyword"
             ref={refKeyword}
             disabled={inverted}
-            onChange={e => setKeywords(e.target.value)}
-            value={pageRequestDTO.keyword ?? keywords}
+            onChange={e =>
+              setPageRequestDTO({...pageRequestDTO, keyword: e.target.value || ''})
+            }
+            value={pageRequestDTO.keyword || ''}
           />
           <div className="input-group-append">
             <button
@@ -205,26 +183,17 @@ export default function List() {
             <tr
               key={boardsDTO.bno}
               className="boardslist"
-              onClick={() =>
-                goRead(
-                  boardsDTO.bno,
-                  pageResultDTO.page,
-                  pageRequestDTO.type,
-                  pageRequestDTO.keyword
-                )
-              }>
+              onClick={() => goRead(boardsDTO.bno)}>
               <th scope="row">{boardsDTO.bno}</th>
               <td>
                 {boardsDTO.bphotosDTOList.length > 0 &&
-                boardsDTO.bphotosDTOList[0].path != null ? (
+                boardsDTO.bphotosDTOList[0].path ? (
                   <img
                     src={`http://localhost:8080/api/display?fileName=${boardsDTO.bphotosDTOList[0].thumbnailURL}`}
                     className="thumbnail"
                     alt="Boards Thumbnail"
                   />
-                ) : (
-                  ''
-                )}
+                ) : null}
                 {boardsDTO.title}
               </td>
               <td>
@@ -240,8 +209,7 @@ export default function List() {
                   day: '2-digit',
                   hour: '2-digit',
                   minute: '2-digit',
-                  second: '2-digit',
-                  hour12: false // 24시간 형식 사용
+                  second: '2-digit'
                 }).format(new Date(boardsDTO.regDate))}
               </td>
             </tr>
@@ -250,36 +218,58 @@ export default function List() {
       </table>
       {pageResultDTO && (
         <div className="pagination">
-          {pageResultDTO.page > 1 && pageResultDTO.prev && (
-            <button
-              className="btn btn-outline-primary"
-              onClick={() => {
-                navigate(
-                  `${url}/list?page=${pageResultDTO.page - 1}&type=${
-                    pageRequestDTO.type
-                  }&keyword=${pageRequestDTO.keyword}`
-                )
-              }}>
-              &lt; 이전
-            </button>
-          )}
-          <span>
-            {pageResultDTO.page} / {Math.ceil(pageResultDTO.end / pageResultDTO.size)}
-          </span>
-          {pageResultDTO.page < Math.ceil(pageResultDTO.end / pageResultDTO.size) &&
-            pageResultDTO.next && (
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => {
+              navigate(
+                `${url}/list?page=${pageResultDTO.page - 1}&type=${
+                  pageRequestDTO.type
+                }&keyword=${pageRequestDTO.keyword}`
+              )
+            }}
+            disabled={!pageResultDTO.prev}>
+            &lt; 이전
+          </button>
+
+          {/* 페이지 번호 표시 */}
+          {Array.from({length: pageResultDTO.totalPage}, (_, index) => index + 1)
+            .filter(pageNum => {
+              // 현재 페이지를 중심으로 앞뒤 2페이지를 보여주고
+              // 그 외의 페이지는 생략하고 '...'을 표시하도록 필터링합니다.
+              return (
+                (pageNum <= pageResultDTO.page + 2 &&
+                  pageNum >= pageResultDTO.page - 2) ||
+                pageNum === 1 ||
+                pageNum === pageResultDTO.totalPage
+              )
+            })
+            .map(pageNum => (
               <button
-                className="btn btn-outline-primary"
+                key={pageNum}
+                className={`btn ${
+                  pageResultDTO.page === pageNum ? 'btn-primary' : 'btn-outline-primary'
+                }`}
                 onClick={() => {
                   navigate(
-                    `${url}/list?page=${pageResultDTO.page + 1}&type=${
-                      pageRequestDTO.type
-                    }&keyword=${pageRequestDTO.keyword}`
+                    `${url}/list?page=${pageNum}&type=${pageRequestDTO.type}&keyword=${pageRequestDTO.keyword}`
                   )
                 }}>
-                다음 &gt;
+                {pageNum}
               </button>
-            )}
+            ))}
+
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => {
+              navigate(
+                `${url}/list?page=${pageResultDTO.page + 1}&type=${
+                  pageRequestDTO.type
+                }&keyword=${pageRequestDTO.keyword}`
+              )
+            }}
+            disabled={!pageResultDTO.next}>
+            다음 &gt;
+          </button>
         </div>
       )}
     </div>

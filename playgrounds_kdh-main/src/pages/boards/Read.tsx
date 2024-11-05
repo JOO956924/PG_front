@@ -239,11 +239,11 @@ export default function Read() {
   }
 
   return (
-    <div className="read-container">
+    <div className="read-container" style={{width: '800px'}}>
       <button className="btn btn-outline-primary" onClick={goBack}>
         뒤로가기
       </button>
-      <div className="read-content">
+      <div className="read-content" style={{width: '100%'}}>
         <h2 className="read-title">제목: {boardsDTO?.title}</h2>
         <p className="read-author">글쓴이: {boardsDTO?.email}</p>
         {boardsDTO?.bphotosDTOList.length > 0 ? (
