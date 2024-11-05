@@ -35,6 +35,7 @@ const App: React.FC = () => {
         <Route path="/grounds/register" element={<PrivateRoute component={Layout} />} />
         <Route path="/members/profile" element={<PrivateRoute component={Layout} />} />
         <Route path="/members/charge" element={<PrivateRoute component={Layout} />} />
+        <Route path="/members/modify" element={<PrivateRoute component={Layout} />} />
         <Route path="*" element={<PrivateRoute component={NoMatch} />} />
       </Routes>
     </Router>

@@ -10,6 +10,7 @@ import Bread from '../../pages/boards/Read'
 import Bmodify from '../../pages/boards/Modify'
 import Profile from '../../pages/members/Profile'
 import Charge from '../../pages/members/Charge'
+import Mmodify from '../../pages/members/Modify'
 
 export type MainContentsProps = {
   style?: CSSProperties
@@ -44,6 +45,8 @@ export const MainContents: FC<MainContentsProps> = ({style}) => {
         return <Profile />
       case '/members/charge':
         return <Charge />
+      case '/members/modify':
+        return <Mmodify />
       default:
         return <h2>Page Not Found</h2>
     }

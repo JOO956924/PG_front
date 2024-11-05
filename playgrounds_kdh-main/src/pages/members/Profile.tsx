@@ -12,11 +12,11 @@ interface MemberDTO {
   level: string
   prefer: string
   likes: string
+  bnotitle: string
 }
 
 const Profile: React.FC = () => {
   const [member, setMember] = useState<MemberDTO | null>(null)
-  const [titles, setTitles] = useState<string[]>([])
   const token = useToken()
   const navigate = useNavigate()
 
@@ -32,20 +32,6 @@ const Profile: React.FC = () => {
       })
         .then(res => res.json())
         .then(data => setMember(data))
-        .catch(err => console.log('Error:', err))
-
-      // 내가 쓴 글 제목 가져오기
-      fetch(
-        `http://localhost:8080/api/boards/titles?email=${encodeURIComponent(email)}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-        .then(res => res.json())
-        .then(data => setTitles(data))
         .catch(err => console.log('Error:', err))
     }
   }, [token])
@@ -80,11 +66,18 @@ const Profile: React.FC = () => {
       .catch(err => console.log('Error:', err))
   }
 
+  const handleBnoTitleClick = (bno: string) => {
+    navigate(`/boards/read?bno=${bno}`)
+  }
+
   if (!member) {
     return <div>Loading...</div>
   }
 
   const likesList = member.likes ? member.likes.split(',') : []
+
+  // bnotitle 데이터를 파싱하여 bno와 title로 나누기
+  const bnoTitleList = member.bnotitle ? member.bnotitle.split(',') : []
 
   return (
     <div className="profile-container">
@@ -93,6 +86,7 @@ const Profile: React.FC = () => {
       <p>이름: {member.name}</p>
       <p>캐쉬: {member.nowcash.toLocaleString()} 원</p>
       <button onClick={() => navigate('/members/charge')}>캐쉬 충전</button>
+      <button onClick={() => navigate('/members/modify')}>회원정보 수정</button>
 
       <h2>예약한 구장</h2>
       <ul>
@@ -105,8 +99,15 @@ const Profile: React.FC = () => {
 
       <h2>내가 쓴 글</h2>
       <ul>
-        {titles.length > 0 ? (
-          titles.map((title, index) => <li key={index}>title:{title}</li>)
+        {bnoTitleList.length > 0 ? (
+          bnoTitleList.map((item, index) => {
+            const [bno, title] = item.split('-') // bno와 title 분리
+            return (
+              <li key={index} onClick={() => handleBnoTitleClick(bno)}>
+                {title}
+              </li>
+            )
+          })
         ) : (
           <li>작성한 글이 없습니다.</li>
         )}

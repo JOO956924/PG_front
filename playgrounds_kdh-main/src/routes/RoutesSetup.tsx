@@ -19,6 +19,7 @@ export default function RoutesSetup() {
       <Route path="/boards/read" element={<Layout />} />
       <Route path="/members/profile" element={<Layout />} />
       <Route path="/members/charge" element={<Layout />} />
+      <Route path="/members/modify" element={<Layout />} />
       <Route path="/join" element={<Join />} />
       <Route path="/bjoin" element={<Bjoin />} />
       <Route path="/login" element={<Login />} />
