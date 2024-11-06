@@ -9,9 +9,10 @@ interface GphotosDTO {
   path: string | Blob
 }
 // 세션 스토리지에서 email 가져오기
-const email = sessionStorage.getItem('email') || ''
 
 export default function Register() {
+  const email = sessionStorage.getItem('email')
+
   const [query] = useSearchParams() // url주소의 쿼리를 받을 때
   const token = useToken()
   const navigate = useNavigate()
@@ -260,21 +261,6 @@ export default function Register() {
         id="frmSend"
         method="post"
         action="http://localhost:8080/api/grounds/register">
-        {/* email */}
-        <div className="form-group">
-          <label htmlFor="email" style={{fontSize: '22px'}}>
-            Email
-          </label>
-          <input
-            type="hidden"
-            name="email"
-            style={{fontSize: '22px'}}
-            id="email"
-            className="form-control"
-            value={email}
-          />
-        </div>
-
         {/* 경기 시간 */}
         <div className="form-group">
           <label htmlFor="groundstime" style={{fontSize: '22px'}}>
