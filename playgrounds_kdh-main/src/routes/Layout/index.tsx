@@ -45,7 +45,7 @@ export default function Layout() {
           <img
             src={leftBannerImg}
             alt="Left Banner"
-            style={{width: '100%', height: '100%', objectFit: 'cover'}}
+            style={{width: 'auto', height: '100%', objectFit: 'contain'}}
           />
         </div>
 
@@ -79,7 +79,7 @@ export default function Layout() {
           <img
             src={rightBannerImg}
             alt="Right Banner"
-            style={{width: '100%', height: '100%', objectFit: 'cover'}}
+            style={{width: 'auto', height: '100%', objectFit: 'contain'}}
           />
         </div>
       </div>
