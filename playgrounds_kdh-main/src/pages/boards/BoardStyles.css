@@ -13,9 +13,14 @@ body {
 
 .input-group {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 10px; /* 검색과 등록 버튼 간 10px 간격 추가 */
 }
 
+.input-group-append {
+  display: flex;
+  gap: 10px; /* 두 버튼 간의 간격을 10px로 설정 */
+}
 .input-group .form-control {
   flex: 1;
   padding: 10px; /* 패딩 추가로 클릭 영역 확장 */

@@ -43,7 +43,13 @@ interface PageResultDTO {
   next: boolean
 }
 
-// 날짜 형식을 변환하는 함수
+// 오늘 날짜를 가져오는 함수
+const getToday = () => {
+  const today = new Date()
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate())
+}
+
+// 날짜 형식을 변환하는 함수 수정
 const formatDate = (dateString: string) => {
   const year = dateString.substring(0, 4)
   const month = dateString.substring(4, 6)
@@ -53,10 +59,11 @@ const formatDate = (dateString: string) => {
   const weekDays = ['일', '월', '화', '수', '목', '금', '토']
   const dayOfWeek = weekDays[date.getDay()]
 
-  return `${month}월 ${day}일 (${dayOfWeek})`
+  return {formattedDate: `${month}월 ${day}일 (${dayOfWeek})`, date}
 }
 
 export default function List() {
+  const today = getToday()
   const token = useToken()
   const navigate = useNavigate()
   const [query, setQuery] = useSearchParams()
@@ -285,37 +292,38 @@ export default function List() {
       <div className="card-list">
         {pageResultDTO?.dtoList
           .sort((a, b) => a.groundstime.localeCompare(b.groundstime))
-          .map(ground => (
-            <div key={ground.gno} className="card-row">
-              <div className="ground-time">{formatDate(ground.day.toString())}</div>
-              <div
-                className="card-info"
-                onClick={() =>
-                  goRead(
-                    ground.gno,
-                    pageResultDTO.page,
-                    pageRequestDTO.type,
-                    pageRequestDTO.keyword
-                  )
-                }>
-                <div className="card-content">
-                  <span className="sports-info">종목: {ground.sports}</span>
-                  <span className="game-schedule">경기 시간: {ground.groundstime}</span>
-                  <span className="game-info">구장명: {ground.gtitle}</span>
-                  <span className="location-info">위치: {ground.location}</span>
-                </div>
-                <div className="card-button">
-                  <span className="people-info">
-                    {reservationCounts[ground.gno] >= ground.maxpeople
-                      ? '마감'
-                      : `모집 인원: ${reservationCounts[ground.gno] || 0} / ${
-                          ground.maxpeople
-                        }`}
-                  </span>
+          .map(ground => {
+            const {formattedDate, date} = formatDate(ground.day.toString())
+            const isPast = date < today
+
+            return (
+              <div key={ground.gno} className={`card-row ${isPast ? 'past' : ''}`}>
+                <div className="ground-time">{formattedDate}</div>
+                <div
+                  className="card-info"
+                  onClick={() => !isPast && goRead(ground.gno)}
+                  style={{cursor: isPast ? 'default' : 'pointer'}}>
+                  <div className="card-content">
+                    <span className="sports-info">종목: {ground.sports}</span>
+                    <span className="game-schedule">경기 시간: {ground.groundstime}</span>
+                    <span className="game-info">구장명: {ground.gtitle}</span>
+                    <span className="location-info">위치: {ground.location}</span>
+                  </div>
+                  <div className="card-button">
+                    <span className="people-info">
+                      {isPast
+                        ? '마감된 경기'
+                        : reservationCounts[ground.gno] >= ground.maxpeople
+                        ? '마감'
+                        : `모집 인원: ${reservationCounts[ground.gno] || 0} / ${
+                            ground.maxpeople
+                          }`}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
 
       <ul

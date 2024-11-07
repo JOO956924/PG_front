@@ -116,3 +116,9 @@
   background-color: #007bff;
   color: #fff;
 }
+
+.card-row.past {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: default;
+}

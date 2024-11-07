@@ -174,7 +174,7 @@ export default function List() {
             <th scope="col">Bno</th>
             <th scope="col">Bphoto & Title</th>
             <th scope="col">Review Count</th>
-            <th scope="col">Average Rating</th>
+            {/* <th scope="col">Average Rating</th> */}
             <th scope="col">RegDate</th>
           </tr>
         </thead>
@@ -199,9 +199,9 @@ export default function List() {
               <td>
                 <b>{boardsDTO.reviewsCnt}</b>
               </td>
-              <td>
+              {/* <td>
                 <b>{boardsDTO.likes}</b>
-              </td>
+              </td> */}
               <td>
                 {new Intl.DateTimeFormat('ko-KR', {
                   year: 'numeric',
