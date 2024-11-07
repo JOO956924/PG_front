@@ -1,6 +1,10 @@
 import {MainContents} from './MainContents'
 import {NavigationBar} from './NavigationBar'
 
+// 광고 배너 이미지 가져오기
+import leftBannerImg from '../../assets/no-img.gif'
+import rightBannerImg from '../../assets/no-img.gif'
+
 export default function Layout() {
   return (
     <>
@@ -16,20 +20,68 @@ export default function Layout() {
         }}
       />
 
-      {/* 메인 컨텐츠 */}
-      <div style={{paddingTop: '60px'}}>
-        {/* 직접 위치 조정 */}
-        <MainContents
+      {/* 전체 레이아웃 컨테이너 */}
+      <div
+        style={{
+          display: 'flex',
+          paddingTop: '60px', // 네비게이션 바 아래 공간 확보
+          backgroundColor: '#f4f4f4',
+          minHeight: '100vh'
+        }}>
+        {/* 왼쪽 광고 배너 */}
+        <div
           style={{
+            width: '130px',
+            position: 'fixed',
+            top: '60px', // 네비게이션 바 아래부터 시작
+            left: 0,
+            height: 'calc(100vh - 60px)',
+            backgroundColor: '#fff',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+          <img
+            src={leftBannerImg}
+            alt="Left Banner"
+            style={{width: '100%', height: '100%', objectFit: 'cover'}}
+          />
+        </div>
+
+        {/* 메인 컨텐츠 */}
+        <div
+          style={{
+            flex: 1,
             backgroundColor: 'white',
-            width: '100%',
-            padding: '20px',
+            paddingTop: '20px',
+            paddingBottom: '20px',
             textAlign: 'left',
-            overflowY: 'auto',
-            // position: 'relative', // 상대 위치 사용
-            left: '-130px' // 중앙에서 왼쪽으로 50px 이동
-          }}
-        />
+            overflowY: 'auto'
+          }}>
+          <MainContents />
+        </div>
+
+        {/* 오른쪽 광고 배너 */}
+        <div
+          style={{
+            width: '130px',
+            position: 'fixed',
+            top: '60px', // 네비게이션 바 아래부터 시작
+            right: 0,
+            height: 'calc(100vh - 60px)',
+            backgroundColor: '#fff',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+          <img
+            src={rightBannerImg}
+            alt="Right Banner"
+            style={{width: '100%', height: '100%', objectFit: 'cover'}}
+          />
+        </div>
       </div>
     </>
   )

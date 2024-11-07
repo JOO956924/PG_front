@@ -48,7 +48,14 @@ export const NavigationBar: FC<NavProps> = ({style}) => {
     <nav
       className="navbar navbar-expand-lg navbar-dark bg-primary"
       id="topNav"
-      style={{position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10}}>
+      style={{
+        position: 'fixed', // 스크롤 시 고정
+        top: 0,
+        left: 0,
+        width: '100%',
+        zIndex: 1000, // 상위 요소로 설정
+        ...style // 추가 스타일을 props에서 받아올 수 있게 함
+      }}>
       <div className="container-fluid">
         <div
           style={{

@@ -6,7 +6,7 @@ import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import Calendar from '../../components/Calendar'
 import useToken from '../../hooks/useToken'
-import './List.css'
+// import './List.css'
 
 // Grounds 데이터 구조 정의
 interface Grounds {
@@ -63,6 +63,103 @@ const formatDate = (dateString: string) => {
 }
 
 export default function List() {
+  const styles = {
+    listContainer: {
+      width: '100%',
+      padding: '20px',
+      backgroundColor: '#f9f9f9',
+      margin: '0 auto'
+    },
+    cardList: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '15px',
+      padding: 0,
+      margin: 0
+    },
+    cardRow: (isPast: boolean) => ({
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: '#ffffff',
+      padding: '20px',
+      borderRadius: '10px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      width: '90%',
+      margin: '0 auto',
+      color: '#333',
+      transition: 'box-shadow 0.3s',
+      opacity: isPast ? 0.5 : 1,
+      pointerEvents: isPast ? 'none' : 'auto',
+      cursor: isPast ? 'default' : 'pointer'
+    }),
+    groundTime: {
+      fontWeight: 'bold',
+      fontSize: '14px',
+      marginRight: '20px',
+      width: '100px',
+      color: '#555'
+    },
+    cardInfo: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flex: 1,
+      cursor: 'pointer'
+    },
+    cardContent: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '5px',
+      textAlign: 'left' as const
+    },
+    locationInfo: {
+      fontSize: '16px',
+      color: '#333'
+    },
+    sportsInfo: {
+      fontSize: '16px',
+      color: '#333'
+    },
+    gameInfo: {
+      fontSize: '16px',
+      color: '#333'
+    },
+    cardButton: {
+      textAlign: 'right' as const
+    },
+    button: {
+      backgroundColor: '#ff6b6b',
+      color: 'white',
+      borderRadius: '20px',
+      padding: '5px 15px',
+      border: 'none',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s'
+    },
+    buttonHover: {
+      backgroundColor: '#ff3b3b'
+    },
+    pagination: {
+      display: 'flex',
+      listStyle: 'none',
+      justifyContent: 'center',
+      marginTop: '20px'
+    },
+    pageItem: {
+      margin: '0 5px'
+    },
+    pageLink: (isActive: boolean) => ({
+      padding: '10px 15px',
+      fontSize: '18px',
+      color: isActive ? '#fff' : '#333',
+      backgroundColor: isActive ? '#007bff' : '#ffffff',
+      borderRadius: '10px',
+      textDecoration: 'none',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      transition: 'background-color 0.3s'
+    })
+  }
+
   const today = getToday()
   const token = useToken()
   const navigate = useNavigate()
@@ -212,7 +309,7 @@ export default function List() {
   }
 
   return (
-    <div className="container">
+    <div style={styles.listContainer}>
       <Slider {...sliderSettings}>
         <div className="carousel-slide">
           <img
@@ -259,7 +356,7 @@ export default function List() {
             ref={refKeyword}
             value={keywords}
             onChange={e => setKeywords(e.target.value)}
-            disabled={types === ''} // type이 "선택하세요"일 경우 비활성화
+            disabled={types === ''}
           />
 
           <button
@@ -267,11 +364,10 @@ export default function List() {
             className="btn btn-outline-primary"
             style={{fontSize: '30px', marginLeft: '10px'}}
             onClick={handleSearch}
-            disabled={types === ''} // type이 "선택하세요"일 경우 비활성화
-          >
+            disabled={types === ''}>
             Search
           </button>
-          {!isRegisterHidden && ( // Register 버튼을 조건부로 렌더링
+          {!isRegisterHidden && (
             <button
               type="button"
               className="btn btn-outline-secondary"
@@ -289,7 +385,7 @@ export default function List() {
         </div>
       </form>
 
-      <div className="card-list">
+      <div style={styles.cardList}>
         {pageResultDTO?.dtoList
           .sort((a, b) => a.groundstime.localeCompare(b.groundstime))
           .map(ground => {
@@ -297,20 +393,19 @@ export default function List() {
             const isPast = date < today
 
             return (
-              <div key={ground.gno} className={`card-row ${isPast ? 'past' : ''}`}>
-                <div className="ground-time">{formattedDate}</div>
+              <div key={ground.gno} style={styles.cardRow(isPast)}>
+                <div style={styles.groundTime}>{formattedDate}</div>
                 <div
-                  className="card-info"
-                  onClick={() => !isPast && goRead(ground.gno)}
-                  style={{cursor: isPast ? 'default' : 'pointer'}}>
-                  <div className="card-content">
-                    <span className="sports-info">종목: {ground.sports}</span>
-                    <span className="game-schedule">경기 시간: {ground.groundstime}</span>
-                    <span className="game-info">구장명: {ground.gtitle}</span>
-                    <span className="location-info">위치: {ground.location}</span>
+                  style={styles.cardInfo}
+                  onClick={() => !isPast && goRead(ground.gno)}>
+                  <div style={styles.cardContent}>
+                    <span style={styles.sportsInfo}>종목: {ground.sports}</span>
+                    <span>경기 시간: {ground.groundstime}</span>
+                    <span style={styles.gameInfo}>구장명: {ground.gtitle}</span>
+                    <span style={styles.locationInfo}>위치: {ground.location}</span>
                   </div>
-                  <div className="card-button">
-                    <span className="people-info">
+                  <div style={styles.cardButton}>
+                    <span>
                       {isPast
                         ? '마감된 경기'
                         : reservationCounts[ground.gno] >= ground.maxpeople
@@ -326,14 +421,11 @@ export default function List() {
           })}
       </div>
 
-      <ul
-        className={`pagination ${
-          pageResultDTO && pageResultDTO.pageList.length > 1 ? '' : 'hidden'
-        }`}>
+      <ul style={styles.pagination}>
         {pageResultDTO?.prev && (
-          <li className="page-item">
+          <li style={styles.pageItem}>
             <a
-              className="page-link"
+              style={styles.pageLink(false)}
               href={`/grounds/list?page=${pageResultDTO.start - 1}&day=${
                 selectedDay || query.get('day')
               }`}>
@@ -342,11 +434,9 @@ export default function List() {
           </li>
         )}
         {pageResultDTO?.pageList.map(page => (
-          <li
-            key={page}
-            className={`page-item ${pageResultDTO.page === page ? 'active' : ''}`}>
+          <li key={page} style={styles.pageItem}>
             <a
-              className="page-link"
+              style={styles.pageLink(pageResultDTO.page === page)}
               href={`/grounds/list?page=${page}&type=${query.get(
                 'type'
               )}&keyword=${query.get('keyword')}&day=${selectedDay || query.get('day')}`}>
@@ -355,9 +445,9 @@ export default function List() {
           </li>
         ))}
         {pageResultDTO?.next && (
-          <li className="page-item">
+          <li style={styles.pageItem}>
             <a
-              className="page-link"
+              style={styles.pageLink(false)}
               href={`/grounds/list?page=${pageResultDTO.end + 1}&day=${
                 selectedDay || query.get('day')
               }`}>
